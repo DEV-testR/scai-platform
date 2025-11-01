@@ -26,3 +26,4 @@ dataset.jsonl
 finetune_llama.py
 gohan.ollama
 modelfile
+/target
