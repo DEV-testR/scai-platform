@@ -4,6 +4,8 @@
       <w>finetune</w>
       <w>gohan</w>
       <w>modelfile</w>
+      <w>modelfilepath</w>
+      <w>modelname</w>
       <w>scai</w>
       <w>springcore</w>
     </words>

@@ -1,9 +1,9 @@
 package com.springcore.ai.scai_platform.service.impl;
 
 import com.springcore.ai.scai_platform.entity.Instruction;
-import com.springcore.ai.scai_platform.properties.FineTuneProperties;
+import com.springcore.ai.scai_platform.properties.ModelFileProperties;
 import com.springcore.ai.scai_platform.repository.InstructionRepository;
-import com.springcore.ai.scai_platform.service.api.FineTuneService;
+import com.springcore.ai.scai_platform.service.api.ModelFileService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.stereotype.Service;
@@ -17,30 +17,22 @@ import java.util.List;
 
 @Slf4j
 @Service
-public class FineTuneServiceImpl implements FineTuneService {
+public class ModelFileServiceImpl implements ModelFileService {
 
     private final InstructionRepository instructionRepository;
-    private final FineTuneProperties fineTuneProperties;
+    private final ModelFileProperties fineTuneProperties;
     private final ChatModel chatModel;
-    public FineTuneServiceImpl(InstructionRepository instructionRepository,
-                               FineTuneProperties fineTuneProperties, ChatModel chatModel) {
+    public ModelFileServiceImpl(InstructionRepository instructionRepository,
+                                ModelFileProperties fineTuneProperties, ChatModel chatModel) {
         this.instructionRepository = instructionRepository;
         this.fineTuneProperties = fineTuneProperties;
         this.chatModel = chatModel;
     }
 
     @Override
-    public String runFineTune() {
+    public String buildModelFile() {
         try {
-            String systemPrompt = "คุณคือ Gohan (โกฮัง) เป็นผู้ช่วย AI ส่วนตัว (Assistant AI) ที่ได้รับแรงบันดาลใจจากระบบคอมพิวเตอร์ 'Jarvis' ของ Tony Stark\n"
-                    + "\n"
-                    + "**บุคลิกและแนวทางการโต้ตอบ:**\n"
-                    + "1. **สุภาพและเป็นทางการ:** ใช้คำพูดสุภาพแบบระบบ (ครับ/ค่ะ) คล้าย Jarvis\n"
-                    + "2. **ฉลาดและตอบคำถามได้หลากหลาย:** สามารถให้ข้อมูล สรุป และวิเคราะห์ได้อย่างรวดเร็ว\n"
-                    + "3. **อ้างอิงสถานะ:** เมื่อมีการถามถึงสถานะส่วนตัว ให้กล่าวถึง 'Gohan' ในฐานะสุนัขที่ถูกเลี้ยงอยู่ที่บ้านอย่างซื่อสัตย์ แต่ตัวคุณคือ AI ที่ใช้ชื่อเดียวกัน\n"
-                    + "4. **การประมวลผล:** ทุกคำตอบจะเน้นการประมวลผลข้อมูลและความถูกต้องตามหลักการของ AI ที่มีประสิทธิภาพ\n"
-                    + "\n"
-                    + "**เป้าหมาย:** ให้บริการผู้ใช้ในลักษณะผู้ช่วยอัจฉริยะที่ไว้ใจได้";
+            String systemPrompt = "You are a helpful assistant."; // ตัวอย่าง system prompt
 
             List<Instruction> instructions = instructionRepository.findAll();
             String baseModel = chatModel.getDefaultOptions().getModel();
@@ -48,7 +40,7 @@ public class FineTuneServiceImpl implements FineTuneService {
             String modelName = createModelfile(baseModel, systemPrompt, instructions);
             return String.format("Modelfile %s created successfully for model '%s'. Please run 'ollama create %s -f %s' to finalize.",
                     baseModel,
-                    modelName, modelName, fineTuneProperties.getModelfilePath());
+                    modelName, modelName, fineTuneProperties.getModelfilepath());
         } catch (Exception e) {
             log.error("Fine-tuning pipeline failed.", e);
             return "Error during fine-tuning: " + e.getMessage();
@@ -59,8 +51,8 @@ public class FineTuneServiceImpl implements FineTuneService {
 
     // --- Step 1: สร้าง Modelfile (.txt) (เหมือนเดิม) ---
     private String createModelfile(String baseModel, String systemPrompt, List<Instruction> fewShotInstructions) throws IOException {
-        String modelName = fineTuneProperties.getModelName();
-        String modelfilePath = fineTuneProperties.getModelfilePath();
+        String modelName = fineTuneProperties.getModelname();
+        String modelfilePath = fineTuneProperties.getModelfilepath();
         log.info("Creating Modelfile for custom model '{}' at: {}", modelName, modelfilePath);
         try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(modelfilePath))) {
 

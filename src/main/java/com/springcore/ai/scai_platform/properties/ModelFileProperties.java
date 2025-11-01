@@ -9,9 +9,9 @@ import org.springframework.context.annotation.Configuration;
  * This ensures properties are loaded correctly and avoids direct @Value dependency errors.
  */
 @Configuration
-@ConfigurationProperties(prefix = "spring.finetune")
+@ConfigurationProperties(prefix = "spring.modelfile")
 @Data
-public class FineTuneProperties {
-    private String modelfilePath; // เช่น Modelfile
-    private String modelName;
+public class ModelFileProperties {
+    private String modelfilepath;
+    private String modelname;
 }

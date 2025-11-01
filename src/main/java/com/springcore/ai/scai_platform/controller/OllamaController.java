@@ -1,6 +1,6 @@
 package com.springcore.ai.scai_platform.controller;
 
-import com.springcore.ai.scai_platform.service.api.FineTuneService;
+import com.springcore.ai.scai_platform.service.api.ModelFileService;
 import com.springcore.ai.scai_platform.service.api.OllamaService;
 import io.micrometer.common.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -16,11 +16,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v0/ollama")
 public class OllamaController {
 
-    private final FineTuneService fineTuneService;
+    private final ModelFileService modelFileService;
 private final OllamaService ollamaService;
 
-    public OllamaController(FineTuneService fineTuneService, OllamaService ollamaService) {
-        this.fineTuneService = fineTuneService;
+    public OllamaController(ModelFileService fineTuneService, OllamaService ollamaService) {
+        this.modelFileService = fineTuneService;
         this.ollamaService = ollamaService;
     }
 
@@ -52,7 +52,7 @@ private final OllamaService ollamaService;
 
     @PostMapping("/fine-tune")
     public ResponseEntity<String> fineTuneModel() {
-        String modelName = fineTuneService.runFineTune();
+        String modelName = modelFileService.buildModelFile();
         log.info("Request to FineTune Ollama model: {}", modelName);
         return ResponseEntity.accepted().body(modelName);
     }

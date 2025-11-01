@@ -25,12 +25,12 @@ spring:
       base-url: http://192.168.50.13:30068
       chat:
         options:
-          model: phi3
+          model: tinygohan
           temperature: 0.7
 
-  finetune:
-    modelfilePath: "./modelfile"
-    modelName: "gohan209"
+  modelfile:
+    modelfilepath: "./modelfile"
+    modelname: "gohan209"
 
 
 # 5. JWT Configuration
