@@ -2,7 +2,7 @@ package com.springcore.ai.scai_platform.controller;
 
 
 import com.springcore.ai.scai_platform.entity.Instruction;
-import com.springcore.ai.scai_platform.service.InstructionService;
+import com.springcore.ai.scai_platform.service.impl.InstructionServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,10 +24,10 @@ import java.util.List;
 public class InstructionController {
 
     private static final Logger log = LoggerFactory.getLogger(InstructionController.class);
-    private final InstructionService service;
+    private final InstructionServiceImpl service;
 
     @Autowired
-    public InstructionController(InstructionService service) {
+    public InstructionController(InstructionServiceImpl service) {
         this.service = service;
     }
 

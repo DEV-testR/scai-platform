@@ -1,4 +1,4 @@
-package com.springcore.ai.scai_platform.config;
+package com.springcore.ai.scai_platform.properties;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -9,13 +9,9 @@ import org.springframework.context.annotation.Configuration;
  * This ensures properties are loaded correctly and avoids direct @Value dependency errors.
  */
 @Configuration
-@ConfigurationProperties(prefix = "app.finetune")
+@ConfigurationProperties(prefix = "spring.finetune")
 @Data
 public class FineTuneProperties {
-
-    // Corresponds to app.finetune.dataset-file
-    private String datasetFile;
-
-    // Corresponds to app.finetune.python-file
-    private String pythonFile;
+    private String modelfilePath; // เช่น Modelfile
+    private String modelName;
 }

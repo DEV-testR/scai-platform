@@ -2,7 +2,7 @@ package com.springcore.ai.scai_platform.security.config;
 
 import com.springcore.ai.scai_platform.security.jwt.JwtAuthenticationFilter;
 import com.springcore.ai.scai_platform.security.jwt.JwtTokenProvider;
-import com.springcore.ai.scai_platform.service.ScaiUserDetailsService;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -28,10 +28,10 @@ import java.util.List;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    private final ScaiUserDetailsService userDetailsService;
+    private final UserDetailsService userDetailsService;
     private final JwtTokenProvider jwtTokenProvider;
 
-    public SecurityConfig(ScaiUserDetailsService userDetailsService, JwtTokenProvider jwtTokenProvider) {
+    public SecurityConfig(UserDetailsService userDetailsService, JwtTokenProvider jwtTokenProvider) {
         this.userDetailsService = userDetailsService;
         this.jwtTokenProvider = jwtTokenProvider;
     }

@@ -1,4 +1,4 @@
-package com.springcore.ai.scai_platform.service;
+package com.springcore.ai.scai_platform.service.impl;
 
 import com.springcore.ai.scai_platform.dto.UserPrincipal;
 import com.springcore.ai.scai_platform.repository.UserRepository;
@@ -8,10 +8,10 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service
-public class ScaiUserDetailsService implements UserDetailsService {
+public class UserDetailsServiceImpl implements UserDetailsService {
     private final UserRepository userRepository;
 
-    public ScaiUserDetailsService(UserRepository userRepository) {
+    public UserDetailsServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 

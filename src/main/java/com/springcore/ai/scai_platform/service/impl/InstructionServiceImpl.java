@@ -1,46 +1,47 @@
-package com.springcore.ai.scai_platform.service;
+package com.springcore.ai.scai_platform.service.impl;
 
 import com.springcore.ai.scai_platform.entity.Instruction;
 import com.springcore.ai.scai_platform.repository.InstructionRepository;
+import com.springcore.ai.scai_platform.service.api.InstructionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 
 @Service
-public class InstructionService {
-    private static final Logger log = LoggerFactory.getLogger(InstructionService.class);
+public class InstructionServiceImpl implements InstructionService {
+    private static final Logger log = LoggerFactory.getLogger(InstructionServiceImpl.class);
     private final InstructionRepository instructionRepository;
 
     @Autowired
-    public InstructionService(InstructionRepository instructionRepository) {
+    public InstructionServiceImpl(InstructionRepository instructionRepository) {
         this.instructionRepository = instructionRepository;
     }
 
+    @Override
     public List<Instruction> fetchAllInstructions() {
         log.info("Fetching all instructions from the dataset.");
         return instructionRepository.findAll();
     }
 
-    public Instruction fetchInstructionById(@PathVariable Long id) {
+    @Override
+    public Instruction fetchInstructionById(Long id) {
         return instructionRepository.findById(id).orElse(null);
     }
 
+    @Override
     public Instruction createInstruction(Instruction instruction) {
-        // ID จะถูกสร้างโดย DB อัตโนมัติ
         Instruction savedInstruction = instructionRepository.save(instruction);
         log.info("New instruction created with ID: {}", savedInstruction.getId());
         return savedInstruction;
     }
 
-    public Instruction updateInstruction(Long id, @RequestBody Instruction instructionDetails) {
+    @Override
+    public Instruction updateInstruction(Long id, Instruction instructionDetails) {
         Instruction existingInstruction = fetchInstructionById(id);
         if (existingInstruction != null) {
-            // อัปเดตเฉพาะ field ที่อนุญาต
             existingInstruction.setInstruction(instructionDetails.getInstruction());
             existingInstruction.setOutput(instructionDetails.getOutput());
             Instruction updatedInstruction = instructionRepository.save(existingInstruction);
@@ -52,7 +53,8 @@ public class InstructionService {
         }
     }
 
-    public boolean deleteInstruction(@PathVariable Long id) {
+    @Override
+    public boolean deleteInstruction(Long id) {
         if (instructionRepository.existsById(id)) {
             instructionRepository.deleteById(id);
             log.info("Instruction deleted for ID: {}", id);

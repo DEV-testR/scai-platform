@@ -19,18 +19,29 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MariaDBDialect
 
-# 3. Application Custom Properties (?????? FineTuneService)
-app:
-  finetune:
-    dataset-file: "dataset.jsonl"
-    python-file: "finetune_llama.py"
+  # Ollama AI
+  ai:
+    ollama:
+      base-url: http://192.168.50.13:30068
+      chat:
+        options:
+          model: llama3:8b
+          temperature: 0.7
+      init:
+        # pull-model-strategy: always
+        chat:
+          additional-models:
+            - llama3:8b
+            - llama3.1:latest
+            - llama3.1:8b
+            - phi3:3.8b
+            - phi3:latest
+            - gohan209
 
-# 4. Ollama AI
-ai:
-  ollama:
-    base-url: http://192.168.50.13:30068
-    chat:
-      model: llama3:8b-finetuned-scai
+  finetune:
+    modelfilePath: "./modelfile"
+    modelName: "gohan209"
+
 
 # 5. JWT Configuration
 jwt:

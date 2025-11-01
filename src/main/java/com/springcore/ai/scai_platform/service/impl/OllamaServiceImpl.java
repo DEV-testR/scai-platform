@@ -1,0 +1,55 @@
+package com.springcore.ai.scai_platform.service.impl;
+
+import com.springcore.ai.scai_platform.service.api.OllamaService;
+import io.micrometer.common.util.StringUtils;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.chat.messages.AssistantMessage;
+import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.chat.model.Generation;
+import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.ollama.api.OllamaOptions;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StopWatch;
+
+@Slf4j
+@Service
+public class OllamaServiceImpl implements OllamaService {
+
+    private final ChatModel chatModel;
+    public OllamaServiceImpl(ChatModel chatModel) {
+        this.chatModel = chatModel;
+    }
+
+    public String chat(String model, String prompt) {
+
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
+
+        if (StringUtils.isEmpty(model)) {
+            model = chatModel.getDefaultOptions().getModel();
+            String response = chatModel.call(prompt);
+
+            stopWatch.stop();
+            log.info("Model '{}' call completed in {} ms.",
+                    model, stopWatch.getTotalTimeMillis());
+            return response;
+        }
+
+        // Dynamic Model
+        OllamaOptions ollamaOptions = new OllamaOptions();
+        ollamaOptions.setModel(model);
+        Prompt newPrompt = new Prompt(new UserMessage(prompt), ollamaOptions);
+        log.info("Use Model: {}", model);
+        ChatResponse call = chatModel.call(newPrompt);
+        stopWatch.stop();
+
+        Generation result = call.getResult();
+        AssistantMessage output = result.getOutput();
+        String response =output.getText();
+        log.info("Model '{}' call completed in {} ms.",
+                model, stopWatch.getTotalTimeMillis());
+        return response;
+    }
+}
