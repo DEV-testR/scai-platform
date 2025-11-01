@@ -79,14 +79,17 @@ public class FineTuneServiceImpl implements FineTuneService {
             writer.newLine();
 
             // 3. ส่วน PARAMETERS
-            writer.write("PARAMETER temperature 0.7");
+            writer.write("PARAMETER temperature 0.3");
+            writer.newLine();
+            writer.write("PARAMETER top_p 0.5");
+            writer.newLine();
+            writer.write("PARAMETER top_k 20");
+            writer.newLine();
+            writer.write("PARAMETER num_predict 100");
             writer.newLine();
             writer.write("PARAMETER num_ctx 4069");
             writer.newLine();
-            writer.write("PARAMETER top_k 40");
-            writer.newLine();
-            writer.write("PARAMETER top_p 0.9");
-            writer.newLine();
+
             writer.newLine();
 
             // 4. ส่วน MESSAGE (Few-Shot Examples)
