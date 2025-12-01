@@ -22,25 +22,15 @@ spring:
   # Ollama AI
   ai:
     ollama:
-      base-url: http://192.168.50.13:30068
+      base-url: http://localhost:11434
       chat:
         options:
-          model: llama3:8b
+          model: iapp/chinda-qwen3-4b
           temperature: 0.7
-      init:
-        # pull-model-strategy: always
-        chat:
-          additional-models:
-            - llama3:8b
-            - llama3.1:latest
-            - llama3.1:8b
-            - phi3:3.8b
-            - phi3:latest
-            - gohan209
 
-  finetune:
-    modelfilePath: "./modelfile"
-    modelName: "gohan209"
+  modelfile:
+    modelfilepath: "./modelfile"
+    modelname: "springcoreai"
 
 
 # 5. JWT Configuration
