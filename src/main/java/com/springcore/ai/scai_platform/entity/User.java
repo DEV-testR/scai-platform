@@ -18,7 +18,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "user")
+@Table(name = "AS_Users")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
