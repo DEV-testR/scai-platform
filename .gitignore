@@ -27,3 +27,4 @@ finetune_llama.py
 gohan.ollama
 modelfile
 /target
+/.idea
