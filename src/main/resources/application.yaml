@@ -22,7 +22,7 @@ spring:
   # Ollama AI
   ai:
     ollama:
-      base-url: http://localhost:11434
+      base-url: http://192.168.50.13:11434
       chat:
         options:
           model: iapp/chinda-qwen3-4b
