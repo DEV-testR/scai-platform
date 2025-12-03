@@ -1,7 +1,6 @@
 package com.springcore.ai.scai_platform.service.impl;
 
 import com.springcore.ai.scai_platform.service.api.OllamaService;
-import io.micrometer.common.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.messages.AbstractMessage;
 import org.springframework.ai.chat.messages.AssistantMessage;
@@ -13,6 +12,7 @@ import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.ollama.api.OllamaOptions;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
+import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 
 @Slf4j
@@ -29,7 +29,7 @@ public class OllamaServiceImpl implements OllamaService {
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
 
-        if (StringUtils.isEmpty(model)) {
+        if (!StringUtils.hasLength(model)) {
             model = chatModel.getDefaultOptions().getModel();
             String response = chatModel.call(prompt);
 
@@ -76,7 +76,7 @@ public class OllamaServiceImpl implements OllamaService {
                 .map(ChatResponse::getResult)
                 .map(Generation::getOutput)
                 .mapNotNull(AbstractMessage::getText)
-                .filter(StringUtils::isNotEmpty)
+                .filter(StringUtils::hasLength)
                 .doFinally(signalType -> log.info("Model '{}' streaming completed.", model));
     }
 }

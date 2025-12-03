@@ -3,10 +3,10 @@ package com.springcore.ai.scai_platform.controller;
 import com.springcore.ai.scai_platform.dto.AIChatRequest;
 import com.springcore.ai.scai_platform.service.api.ModelFileService;
 import com.springcore.ai.scai_platform.service.api.OllamaService;
-import io.micrometer.common.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,7 +33,7 @@ private final OllamaService ollamaService;
             String prompt = request.getPrompt();
             log.info("Received chat prompt: {}", prompt);
             String output = ollamaService.chat(request.getModel(), prompt);
-            if (StringUtils.isEmpty(output)) {
+            if (!StringUtils.hasLength(output)) {
                 log.warn("Ollama returned an empty response.");
                 return ResponseEntity.status(500).body("Error: Ollama returned an empty response.");
             }
