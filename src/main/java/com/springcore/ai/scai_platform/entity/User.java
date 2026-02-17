@@ -6,19 +6,17 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "AS_Users")
+@Table(name = "as_user")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -33,20 +31,60 @@ public class User {
     private String email;
 
     @Column(nullable = false)
-    private String password;  // เข้ารหัสแล้ว
+    private String password;
 
-    private String pin;  // เข้ารหัสแล้ว
+    private String pin;
 
-    private String fullName;
+    @Column(name = "datefo")
+    private LocalDateTime datefo;
 
-    private String phone;
+    @Column(name = "dateto")
+    private LocalDateTime dateto;
 
-    private String address;
+    private Long eacentl;
 
-    private String profilePictureUrl;
+    private String eactype;
 
-    private String socialProvider;
+    @ManyToOne
+    @JoinColumn(name = "emid")
+    private Employee emid;
 
-    private String socialId;
+    private LocalDateTime expdate;
+
+    @Column(name = "INACTIVE")
+    private Integer inactive;
+
+    private String lictype;
+
+    private String name;
+
+    private String username;
+
+    private String valstr;
+
+    private Integer defaultrole;
+
+    private Long patid;
+
+    @Column(name = "atworkId")
+    private String atworkId;
+
+    @Column(name = "euniteToken")
+    private String euniteToken;
+
+    @Column(name = "euniteId")
+    private String euniteId;
+
+    private Long disk;
+
+    private String rem;
+
+    private LocalDateTime ts;
+
+    @Column(name = "mailStatus")
+    private Integer mailStatus;
+
+    @Column(name = "tagsValue")
+    private String tagsValue;
 
 }

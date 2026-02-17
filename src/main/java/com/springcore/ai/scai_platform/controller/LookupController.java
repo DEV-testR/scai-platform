@@ -1,0 +1,38 @@
+package com.springcore.ai.scai_platform.controller;
+
+import com.springcore.ai.scai_platform.dto.LookupResponse;
+import com.springcore.ai.scai_platform.dto.UpdateProfileRequest;
+import com.springcore.ai.scai_platform.dto.UserPrincipal;
+import com.springcore.ai.scai_platform.entity.User;
+import com.springcore.ai.scai_platform.service.api.AuthService;
+import com.springcore.ai.scai_platform.service.api.LookupService;
+import com.springcore.ai.scai_platform.service.api.UserService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/lookup")
+@RequiredArgsConstructor
+public class LookupController {
+    private final LookupService lookupService;
+
+    @GetMapping("fetchData/{clazzLookup}")
+    @ResponseBody
+    public ResponseEntity<List<LookupResponse>> fetchData(@PathVariable String clazzLookup) {
+        return ResponseEntity.ok(lookupService.getDynamicLookup(clazzLookup));
+    }
+
+}
+

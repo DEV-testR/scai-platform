@@ -4,7 +4,7 @@ import com.springcore.ai.scai_platform.dto.LoginRequest;
 import com.springcore.ai.scai_platform.dto.AuthResponse;
 import com.springcore.ai.scai_platform.dto.RegisterRequest;
 import com.springcore.ai.scai_platform.entity.User;
-import com.springcore.ai.scai_platform.repository.UserRepository;
+import com.springcore.ai.scai_platform.repository.api.UserRepository;
 import com.springcore.ai.scai_platform.security.jwt.JwtTokenProvider;
 import com.springcore.ai.scai_platform.service.api.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -31,11 +31,12 @@ public class AuthServiceImpl implements AuthService {
 
         User user = new User();
         user.setEmail(request.getEmail());
+        user.setUsername(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setPin(passwordEncoder.encode("000000"));
-        user.setFullName(request.getFullName());
-        user.setSocialProvider(request.getSocialProvider());
-        user.setSocialId(request.getSocialId());
+        // user.setFullName(request.getFullName());
+        // user.setSocialProvider(request.getSocialProvider());
+        // user.setSocialId(request.getSocialId());
         return userRepository.save(user);
     }
 
@@ -58,6 +59,15 @@ public class AuthServiceImpl implements AuthService {
                 .refreshToken(refreshToken)
                 .refreshTokenExpirationMs(jwtTokenProvider.getRefreshTokenExpirationMs())
                 .build();
+    }
+
+    @Override
+    public void resetPassword(String username) {
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new RuntimeException("User not found: " + username));
+        String defaultPassword = "@rgenT1";
+        user.setPassword(passwordEncoder.encode(defaultPassword));
+        userRepository.save(user);
     }
 
     @Override

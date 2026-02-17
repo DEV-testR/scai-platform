@@ -1,10 +1,6 @@
 package com.springcore.ai.scai_platform.service.api;
 
 import com.springcore.ai.scai_platform.entity.Instruction;
-import com.springcore.ai.scai_platform.repository.InstructionRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 

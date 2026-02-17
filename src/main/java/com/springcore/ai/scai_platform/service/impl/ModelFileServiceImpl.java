@@ -2,7 +2,7 @@ package com.springcore.ai.scai_platform.service.impl;
 
 import com.springcore.ai.scai_platform.entity.Instruction;
 import com.springcore.ai.scai_platform.properties.ModelFileProperties;
-import com.springcore.ai.scai_platform.repository.InstructionRepository;
+import com.springcore.ai.scai_platform.repository.api.InstructionRepository;
 import com.springcore.ai.scai_platform.service.api.ModelFileService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatModel;

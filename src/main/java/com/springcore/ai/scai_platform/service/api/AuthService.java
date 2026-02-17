@@ -12,6 +12,8 @@ public interface AuthService {
 
     AuthResponse login(LoginRequest request);
 
+    void resetPassword(String username);
+
     AuthResponse loginWithPin(String email, String pin);
 
     String refreshToken(String refreshToken);

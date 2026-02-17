@@ -3,6 +3,7 @@ package com.springcore.ai.scai_platform.controller;
 import com.springcore.ai.scai_platform.dto.AuthResponse;
 import com.springcore.ai.scai_platform.dto.LoginRequest;
 import com.springcore.ai.scai_platform.dto.RegisterRequest;
+import com.springcore.ai.scai_platform.dto.ResetPasswordRequest;
 import com.springcore.ai.scai_platform.entity.User;
 import com.springcore.ai.scai_platform.service.api.AuthService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -48,6 +49,17 @@ public class AuthController {
 
         response.setHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
         return ResponseEntity.ok(authResponse);
+    }
+
+    @PostMapping("/reset-password-default")
+    public ResponseEntity<?> resetToDefault(@RequestBody ResetPasswordRequest request) {
+        try {
+            String username = request.getEmail();
+            authService.resetPassword(username);
+            return ResponseEntity.ok("Password has been reset to default for: " + username);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @GetMapping("/login/pin")

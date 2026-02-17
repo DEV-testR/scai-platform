@@ -2,7 +2,7 @@ package com.springcore.ai.scai_platform.service.impl;
 
 import com.springcore.ai.scai_platform.dto.UpdateProfileRequest;
 import com.springcore.ai.scai_platform.entity.User;
-import com.springcore.ai.scai_platform.repository.UserRepository;
+import com.springcore.ai.scai_platform.repository.api.UserRepository;
 import com.springcore.ai.scai_platform.service.api.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,10 +26,10 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        user.setFullName(request.getFullName());
+        /*user.setFullName(request.getFullName());
         user.setPhone(request.getPhone());
         user.setAddress(request.getAddress());
-        user.setProfilePictureUrl(request.getProfilePictureUrl());
+        user.setProfilePictureUrl(request.getProfilePictureUrl());*/
 
         return userRepository.save(user);
     }

@@ -1,7 +1,7 @@
 package com.springcore.ai.scai_platform.service.impl;
 
 import com.springcore.ai.scai_platform.entity.Instruction;
-import com.springcore.ai.scai_platform.repository.InstructionRepository;
+import com.springcore.ai.scai_platform.repository.api.InstructionRepository;
 import com.springcore.ai.scai_platform.service.api.InstructionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

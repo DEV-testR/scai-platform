@@ -1,7 +1,7 @@
 package com.springcore.ai.scai_platform.service.impl;
 
 import com.springcore.ai.scai_platform.dto.UserPrincipal;
-import com.springcore.ai.scai_platform.repository.UserRepository;
+import com.springcore.ai.scai_platform.repository.api.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
