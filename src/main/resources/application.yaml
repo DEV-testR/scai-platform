@@ -32,6 +32,10 @@ spring:
     modelfilepath: "./modelfile"
     modelname: "springcoreai"
 
+  application:
+    upload:
+      path: uploads
+
 
 # 5. JWT Configuration
 jwt:
