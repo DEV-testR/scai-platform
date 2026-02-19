@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -23,49 +24,89 @@ public class EmployeeMoveServiceImpl implements EmployeeMoveService {
     @Override
     @Transactional
     public void moveEmployee(Long employeeId, Long newManagerId) {
-        // 1. ป้องกันการลากวางทับตัวเอง
-        if (employeeId.equals(newManagerId)) {
-            throw new RuntimeException("ไม่สามารถย้ายพนักงานไปเป็นหัวหน้าของตัวเองได้");
+        // 1. Prevent moving an employee to be their own manager
+        if (employeeId.compareTo(newManagerId) == 0) {
+            throw new RuntimeException("Cannot move employee to be their own manager.");
         }
 
-        // 2. ตรวจสอบ Circular Reference (ป้องกันการลากหัวหน้าไปไว้ใต้ลูกน้องตัวเอง)
-        // ถ้า "พนักงานที่จะย้าย" เป็น "หัวหน้า" (ไม่ว่าจะระดับไหน) ของ "หัวหน้าใหม่" = ห้ามย้าย!
+        // 2. Circular Reference Check (Using Closure Table ability)
+        // If the "employee to move" is an ancestor of the "new manager", move is prohibited.
         boolean isSubordinate = hierarchyRepository.existsByIdAncestoridAndIdDescendantid(employeeId, newManagerId);
         if (isSubordinate) {
-            throw new RuntimeException("ไม่สามารถย้ายหัวหน้าไปอยู่ใต้สายบังคับบัญชาของลูกน้องตัวเองได้ (Circular Reference Detected)");
+            throw new RuntimeException("Circular Reference Detected: Cannot move a manager under their own subordinate.");
         }
 
         LocalDateTime now = LocalDateTime.now();
 
-        // 3. ดึงข้อมูลพนักงานและหัวหน้าใหม่
+        // 3. Retrieve employee and new manager data
         Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new RuntimeException("ไม่พบข้อมูลพนักงาน"));
+                .orElseThrow(() -> new RuntimeException("Employee not found with ID: " + employeeId));
         Employee newManager = employeeRepository.findById(newManagerId)
-                .orElseThrow(() -> new RuntimeException("ไม่พบข้อมูลหัวหน้าคนใหม่"));
+                .orElseThrow(() -> new RuntimeException("New manager not found with ID: " + newManagerId));
 
-        // 4. จัดการ Trafts (History & Point-in-time)
-        Trafts currentTraft = traftsRepository.findByEmployeeIdAndIscurrentTrue(employeeId)
-                .orElseThrow(() -> new RuntimeException("ไม่พบสถานะปัจจุบันของพนักงาน"));
+        // 4. Handle Trafts (Support both existing staff and new recruits from unassigned list)
+        Optional<Trafts> currentTraftOpt = traftsRepository.findLatestTraftByEmployeeId(employeeId);
 
-        currentTraft.setIscurrent(false);
-        currentTraft.setEnddate(now);
-        traftsRepository.save(currentTraft);
-
-        Trafts newTraft = Trafts.builder()
+        Trafts.TraftsBuilder newTraftBuilder = Trafts.builder()
                 .employee(employee)
                 .manager(newManager)
-                .department(currentTraft.getDepartment())
-                .position(currentTraft.getPosition())
-                .jobRoles(new java.util.HashSet<>(currentTraft.getJobRoles()))
                 .effectivedate(now)
                 .iscurrent(true)
-                .trafttype("ORG_CHART_MOVE")
-                .build();
-        traftsRepository.save(newTraft);
+                .position(currentTraftOpt.map(Trafts::getPosition).orElse(null))
+                .department(currentTraftOpt.map(Trafts::getDepartment).orElse(null))
+                .trafttype("ORG_CHART_MOVE");
 
-        // 5. อัปเดต Closure Table (Bulk Update กิ่งไม้ทั้งสาย)
+        if (currentTraftOpt.isPresent()) {
+            // Case: Moving existing employee
+            Trafts currentTraft = currentTraftOpt.get();
+            currentTraft.setIscurrent(false);
+            currentTraft.setEnddate(now);
+            traftsRepository.save(currentTraft);
+
+            // Copy department, position, and roles from the previous traft
+            newTraftBuilder
+                    .department(currentTraft.getDepartment())
+                    .position(currentTraft.getPosition())
+                    .jobRoles(new java.util.HashSet<>(currentTraft.getJobRoles()));
+        } else {
+            // Case: New employee (from unassigned list)
+            newTraftBuilder.jobRoles(new java.util.HashSet<>());
+        }
+
+        // Build and set auditing field to prevent "createBy cannot be null" error
+        Trafts build = newTraftBuilder.build();
+        build.setCreateBy("SYSTEM");
+        traftsRepository.save(build);
+
+        // 5. Update Closure Table (Hierarchy Bulk Update)
         hierarchyRepository.deleteOldHierarchy(employeeId);
         hierarchyRepository.insertNewHierarchy(employeeId, newManagerId);
     }
 
+    @Override
+    @Transactional
+    public void unassignEmployee(Long employeeId) {
+        // 1. ตรวจสอบก่อนว่าคนนี้มีลูกน้องหรือไม่ (ห้ามปลดคนที่มีลูกน้อง)
+        // หมายเหตุ: ตรงนี้อาจจะต้องใช้ repository ของพี่เช็ค (เช่น ใช้ TraftsRepository)
+        // ถ้าพนักงานมีคนอื่นชี้ managerId มาที่ตัวเอง แสดงว่ามีลูกน้อง
+        boolean hasSubordinates = traftsRepository.existsByManagerIdAndIscurrentTrue(employeeId);
+        /* * ถ้า hierarchyRepository ของพี่ไม่มี method ด้านบน ให้เขียน Native Query หรือ JPQL เช็คใน Trafts แทนได้ครับ:
+         * เช่น: boolean hasSubordinates = traftsRepository.existsByManagerIdAndIscurrentTrue(employeeId);
+         */
+        if (hasSubordinates) {
+            throw new RuntimeException("Cannot unassign an employee who has subordinates. Please reassign their subordinates first.");
+        }
+
+        // 2. ปิด Traft ปัจจุบัน (เปลี่ยน iscurrent = false)
+        Optional<Trafts> currentTraftOpt = traftsRepository.findByEmployeeIdAndIscurrentTrue(employeeId);
+        if (currentTraftOpt.isPresent()) {
+            Trafts currentTraft = currentTraftOpt.get();
+            currentTraft.setIscurrent(false);
+            currentTraft.setEnddate(LocalDateTime.now());
+            traftsRepository.save(currentTraft);
+        }
+
+        // 3. ลบกิ่งก้านของคนนี้ออกจากตาราง Closure Table
+        hierarchyRepository.deleteOldHierarchy(employeeId);
+    }
 }

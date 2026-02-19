@@ -8,6 +8,14 @@ import java.util.List;
 @Data
 @Builder
 public class OrgChartNodeDTO {
+    public String getId() {
+        if (id == null) {
+            return "";
+        }
+
+        return id.toString();
+    }
+
     private Long id;              // employeeId
     private String code;
     private String name;

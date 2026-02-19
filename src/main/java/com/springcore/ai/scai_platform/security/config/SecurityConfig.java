@@ -42,6 +42,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/v0/**").permitAll()
+                        .requestMatchers("/error").permitAll() // <--- เพิ่มบรรทัดนี้ครับ เพื่อให้ Spring ส่ง Error Message ได้
                         .requestMatchers("/api/v1/**").authenticated()
                         .anyRequest().authenticated()
                 )
@@ -54,7 +55,7 @@ public class SecurityConfig {
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
-                .cors(Customizer.withDefaults());  // ใช้ค่า default จาก corsConfigurationSource()
+                .cors(Customizer.withDefaults());
 
         return http.build();
     }
