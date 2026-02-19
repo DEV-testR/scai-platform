@@ -1,17 +1,34 @@
 <component name="ProjectDictionaryState">
   <dictionary name="project">
     <words>
+      <w>ancestorid</w>
       <w>chinda</w>
+      <w>departmentid</w>
+      <w>descendantid</w>
+      <w>effectivedate</w>
+      <w>employeeid</w>
+      <w>enddate</w>
       <w>finetune</w>
       <w>gohan</w>
       <w>iapp</w>
+      <w>iscurrent</w>
+      <w>jobrole</w>
+      <w>jobroleid</w>
+      <w>jobroles</w>
+      <w>managerid</w>
       <w>modelfile</w>
       <w>modelfilepath</w>
       <w>modelname</w>
+      <w>parentid</w>
+      <w>positionid</w>
       <w>scai</w>
       <w>springcore</w>
       <w>springcoreai</w>
       <w>tinygohan</w>
+      <w>traft</w>
+      <w>traftid</w>
+      <w>trafts</w>
+      <w>trafttype</w>
     </words>
   </dictionary>
 </component>
