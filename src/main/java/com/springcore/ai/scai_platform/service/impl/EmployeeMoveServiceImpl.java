@@ -5,6 +5,7 @@ import com.springcore.ai.scai_platform.entity.Trafts;
 import com.springcore.ai.scai_platform.repository.api.EmployeeHierarchyRepository;
 import com.springcore.ai.scai_platform.repository.api.EmployeeRepository;
 import com.springcore.ai.scai_platform.repository.api.TraftsRepository;
+import com.springcore.ai.scai_platform.security.UserContext;
 import com.springcore.ai.scai_platform.service.api.EmployeeMoveService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -72,9 +73,8 @@ public class EmployeeMoveServiceImpl implements EmployeeMoveService {
             newTraftBuilder.jobRoles(new java.util.HashSet<>());
         }
 
-        // Build and set auditing field to prevent "createBy cannot be null" error
         Trafts build = newTraftBuilder.build();
-        build.setCreateBy("SYSTEM");
+        build.setCreateBy(UserContext.getUserName());
         traftsRepository.save(build);
 
         // 5. Update Closure Table (Hierarchy Bulk Update)

@@ -19,10 +19,10 @@ import java.util.List;
 public class UserPrincipal implements UserDetails {
 
     private Long id;
+    private Long emId;
     private String email;
     private String password;
     private Collection<? extends GrantedAuthority> authorities;
-
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -33,6 +33,7 @@ public class UserPrincipal implements UserDetails {
         List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
         return new UserPrincipal(
                 user.getId(),
+                user.getEmid().getId(),
                 user.getEmail(),
                 user.getPassword(),
                 authorities
