@@ -28,7 +28,6 @@ public class OrgChartServiceImpl implements OrgChartService {
     public List<OrgChartNodeDTO> getOrgChartTree() {
         List<Trafts> allCurrent = traftsRepository.findAllByIscurrentTrue();
 
-        // 1. Map DTOs (Safe mapping)
         Map<Long, OrgChartNodeDTO> nodeMap = allCurrent.stream().collect(Collectors.toMap(
                 traft -> traft.getEmployee().getId(),
                 this::convertToDTO
@@ -36,12 +35,10 @@ public class OrgChartServiceImpl implements OrgChartService {
 
         List<OrgChartNodeDTO> rootNodes = new ArrayList<>();
 
-        // 2. Build Tree & Handle Orphans
         nodeMap.values().forEach(node -> {
             OrgChartNodeDTO parent = (node.getManagerId() != null) ? nodeMap.get(node.getManagerId()) : null;
 
             if (parent == null) {
-                // ถ้าไม่มีหัวหน้า หรือหัวหน้าไม่มีตัวตนในระบบปัจจุบัน ให้ถือว่าเป็น Root (เพื่อไม่ให้คนหาย)
                 rootNodes.add(node);
             } else {
                 parent.getChildren().add(node);
@@ -88,13 +85,12 @@ public class OrgChartServiceImpl implements OrgChartService {
         return unassigned.stream().map(emp -> {
             Trafts currentTraft = traftMap.get(emp.getId());
 
-            // ดึงตำแหน่งจริงมาโชว์ ถ้าไม่มีถึงจะใช้ "Waiting for positioning."
             String posName = (currentTraft != null && currentTraft.getPosition() != null)
                     ? currentTraft.getPosition().getName()
                     : "Waiting for positioning.";
 
             return OrgChartNodeDTO.builder()
-                    .id(emp.getId()) // อย่าลืมแปลงเป็น String ตามที่หน้าบ้านต้องการ
+                    .id(emp.getId())
                     .code(emp.getCode())
                     .name(emp.getName())
                     .positionName(posName)
@@ -102,7 +98,6 @@ public class OrgChartServiceImpl implements OrgChartService {
         }).collect(Collectors.toList());
     }
 
-    // Helper Method สำหรับแปลงเป็น DTO (ลดความซ้ำซ้อนของโค้ด)
     private OrgChartNodeDTO convertToDTO(Trafts traft) {
         OrgChartNodeDTO dto = OrgChartNodeDTO.builder()
                 .id(traft.getEmployee().getId())
@@ -111,7 +106,6 @@ public class OrgChartServiceImpl implements OrgChartService {
                 .positionName(traft.getPosition() != null ? traft.getPosition().getName() : "Waiting for positioning.")
                 .build();
 
-        // Recursive: หาลูกน้องของคนนี้ และแปลงเป็น DTO ใส่ใน List children
         List<Trafts> subordinates = traftsRepository.findAllByManagerIdAndIscurrentTrue(traft.getEmployee().getId());
         if (subordinates != null && !subordinates.isEmpty()) {
             dto.setChildren(subordinates.stream()

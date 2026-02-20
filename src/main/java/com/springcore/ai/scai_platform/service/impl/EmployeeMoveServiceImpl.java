@@ -78,7 +78,15 @@ public class EmployeeMoveServiceImpl implements EmployeeMoveService {
         traftsRepository.save(build);
 
         // 5. Update Closure Table (Hierarchy Bulk Update)
+
+        // 5.1 การันตีว่าทั้งคู่มี Self-Reference (depth=0) ป้องกันบั๊กตอน Move พนักงานใหม่
+        hierarchyRepository.insertSelfReference(employeeId);
+        hierarchyRepository.insertSelfReference(newManagerId);
+
+        // 5.2 ตัดความสัมพันธ์กับหัวหน้าเก่าทั้งหมด
         hierarchyRepository.deleteOldHierarchy(employeeId);
+
+        // 5.3 เชื่อมต่อกับหัวหน้าใหม่
         hierarchyRepository.insertNewHierarchy(employeeId, newManagerId);
     }
 
@@ -98,6 +106,7 @@ public class EmployeeMoveServiceImpl implements EmployeeMoveService {
             traftsRepository.save(currentTraft);
         }
 
+        hierarchyRepository.insertSelfReference(employeeId);
         hierarchyRepository.deleteOldHierarchy(employeeId);
     }
 }

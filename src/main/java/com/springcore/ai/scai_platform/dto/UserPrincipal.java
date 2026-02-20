@@ -1,5 +1,6 @@
 package com.springcore.ai.scai_platform.dto;
 
+import com.springcore.ai.scai_platform.entity.Employee;
 import com.springcore.ai.scai_platform.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,7 +20,7 @@ import java.util.List;
 public class UserPrincipal implements UserDetails {
 
     private Long id;
-    private Long emId;
+    private Employee employee;
     private String email;
     private String password;
     private Collection<? extends GrantedAuthority> authorities;
@@ -33,7 +34,7 @@ public class UserPrincipal implements UserDetails {
         List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
         return new UserPrincipal(
                 user.getId(),
-                user.getEmid().getId(),
+                user.getEmid(),
                 user.getEmail(),
                 user.getPassword(),
                 authorities

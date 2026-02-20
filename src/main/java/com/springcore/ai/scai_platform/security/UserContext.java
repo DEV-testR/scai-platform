@@ -1,6 +1,7 @@
 package com.springcore.ai.scai_platform.security;
 
 import com.springcore.ai.scai_platform.dto.UserPrincipal;
+import com.springcore.ai.scai_platform.entity.Employee;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -37,8 +38,13 @@ public class UserContext {
         return (principal != null) ? principal.getId() : null;
     }
 
-    public static Long getEmId(Long userId) {
+    public static Long getEmId() {
         UserPrincipal principal = getPrincipal();
-        return (principal != null) ? principal.getEmId() : null;
+        return (principal != null) ? principal.getEmployee().getId() : null;
+    }
+
+    public static Employee getEmployee() {
+        UserPrincipal principal = getPrincipal();
+        return (principal != null) ? principal.getEmployee() : null;
     }
 }
