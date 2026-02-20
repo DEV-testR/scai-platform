@@ -42,7 +42,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/v0/**").permitAll()
-                        .requestMatchers("/error").permitAll() // <--- เพิ่มบรรทัดนี้ครับ เพื่อให้ Spring ส่ง Error Message ได้
+                        .requestMatchers("/error").permitAll()
                         .requestMatchers("/api/v1/**").authenticated()
                         .anyRequest().authenticated()
                 )

@@ -51,7 +51,6 @@ public class User {
 
     private LocalDateTime expdate;
 
-    @Column(name = "INACTIVE")
     private Integer inactive;
 
     private String lictype;

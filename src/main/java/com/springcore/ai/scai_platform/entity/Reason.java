@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 public class Reason {
     @Id
     @Column(name = "id", precision = 19)
-    private Long id; // decimal(19,0) ใน DB มักใช้ Long ใน Java
+    private Long id;
 
     private String code;
 
@@ -32,7 +32,7 @@ public class Reason {
     private String remarks;
 
     @Column(precision = 10)
-    private Integer inactive; // decimal(10,0) ใช้ Integer ได้ถ้าเก็บแค่ 0/1
+    private Integer inactive;
 
     private String refCode;
 

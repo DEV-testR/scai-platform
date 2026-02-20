@@ -36,13 +36,11 @@ public class FileController {
     public ResponseEntity<Object> uploadFile(@RequestParam("file") MultipartFile file) {
         try {
             FileUploadResult uploadFileResult = fileService.uploadFile(file);
-
             DocumentFile documentFile = new DocumentFile();
             documentFile.setFileName(uploadFileResult.getFileName());
             documentFile.setFileLabel(uploadFileResult.getFileLabel());
             documentFile.setFileType(uploadFileResult.getFileType());
             documentFile.setFilePath(uploadFileResult.getFilePath());
-
             return ResponseEntity.ok(documentFile);
         } catch (ValidationException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
@@ -56,7 +54,9 @@ public class FileController {
     public ResponseEntity<byte[]> downloadFile(@PathVariable String fileName) {
         try {
             byte[] bytes = fileService.downloadFile(fileName);
-            if (bytes == null) return ResponseEntity.notFound().build();
+            if (bytes == null) {
+                return ResponseEntity.notFound().build();
+            }
 
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)

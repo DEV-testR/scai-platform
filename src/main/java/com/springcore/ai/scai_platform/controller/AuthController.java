@@ -27,23 +27,21 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AuthController {
     private final AuthService authService;
-    // 1. ลงทะเบียน
+
     @PostMapping("/register")
     public ResponseEntity<User> registerUser(@RequestBody RegisterRequest request) {
         return ResponseEntity.ok(authService.register(request));
     }
 
-    // 2. ล็อกอิน (email/password หรือ social)
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request, HttpServletResponse response) {
         AuthResponse authResponse = authService.login(request);
         long refreshTokenExpirationMs = authResponse.getRefreshTokenExpirationMs();
-        // เซ็ต refresh token เป็น HttpOnly, Secure cookie
         ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", authResponse.getRefreshToken())
                 .httpOnly(true)
-                .secure(true)  // ใช้ true ใน production ที่มี HTTPS
+                .secure(true)
                 .path("/api/auth/refresh")
-                .maxAge(refreshTokenExpirationMs)  // 7 วัน
+                .maxAge(refreshTokenExpirationMs)
                 .sameSite("Strict")
                 .build();
 
@@ -97,7 +95,6 @@ public class AuthController {
         }
 
         String newAccessToken = authService.refreshToken(refreshToken);
-
         return ResponseEntity.ok(AuthResponse.builder()
                 .accessToken(newAccessToken)
                 .build());

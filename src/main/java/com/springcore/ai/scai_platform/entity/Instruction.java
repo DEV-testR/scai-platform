@@ -23,12 +23,12 @@ import java.time.LocalDateTime;
 public class Instruction {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // Primary Key
+    private Long id;
 
     @Column(name = "instruction", columnDefinition = "TEXT")
     private String instruction;
 
-    @Column(name = "output", columnDefinition = "LONGTEXT") // รองรับ output ขนาดใหญ่
+    @Column(name = "output", columnDefinition = "LONGTEXT")
     private String output;
 
     @Column(name = "topic")

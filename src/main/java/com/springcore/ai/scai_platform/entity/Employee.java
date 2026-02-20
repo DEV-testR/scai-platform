@@ -34,15 +34,15 @@ public class Employee {
     @Column(columnDefinition = "TEXT")
     private String remarks;
 
-    private Long inactive; // decimal(10,0)
+    private Long inactive;
 
     private String cardno;
 
-    private Long persid; // decimal(19,0)
+    private Long persid;
 
-    private Long companyid; // decimal(19,0)
+    private Long companyid;
 
-    private Long estid; // decimal(19,0)
+    private Long estid;
 
     private LocalDateTime startjobd;
 
@@ -93,7 +93,7 @@ public class Employee {
     @Column(columnDefinition = "TEXT")
     private String hospitalname;
 
-    private BigDecimal addpayamt; // decimal(19,2) ใช้ BigDecimal เพื่อความแม่นยำ
+    private BigDecimal addpayamt;
 
     private Long extraMonth;
 

@@ -34,9 +34,9 @@ public class Department extends GenericPersistentObject {
     private String name;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parentid") // ไม่มี underscore หน้า id
+    @JoinColumn(name = "parentid")
     private Department parent;
 
-    private String path; // เก็บเส้นทาง เช่น 1/5/12/ เพื่อ Performance
+    private String path;
     private Integer level;
 }

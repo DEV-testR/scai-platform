@@ -36,14 +36,12 @@ public class UserController {
         return ResponseEntity.ok(userService.getUsers());
     }
 
-    // 3. ล็อกเอาต์
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@RequestHeader("Authorization") String token) {
         userService.logout(token);
         return ResponseEntity.ok().build();
     }
 
-    // 4. แก้ไขข้อมูลส่วนตัว
     @PutMapping("/profile")
     public ResponseEntity<User> updateProfile(@RequestBody UpdateProfileRequest request, @AuthenticationPrincipal UserPrincipal principal) {
         return ResponseEntity.ok(userService.updateProfile(principal.getId(), request));

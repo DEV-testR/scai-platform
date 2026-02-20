@@ -46,7 +46,6 @@ public class EmployeeMoveServiceImpl implements EmployeeMoveService {
 
         // 4. Handle Trafts (Support both existing staff and new recruits from unassigned list)
         Optional<Trafts> currentTraftOpt = traftsRepository.findLatestTraftByEmployeeId(employeeId);
-
         Trafts.TraftsBuilder newTraftBuilder = Trafts.builder()
                 .employee(employee)
                 .manager(newManager)
@@ -86,18 +85,11 @@ public class EmployeeMoveServiceImpl implements EmployeeMoveService {
     @Override
     @Transactional
     public void unassignEmployee(Long employeeId) {
-        // 1. ตรวจสอบก่อนว่าคนนี้มีลูกน้องหรือไม่ (ห้ามปลดคนที่มีลูกน้อง)
-        // หมายเหตุ: ตรงนี้อาจจะต้องใช้ repository ของพี่เช็ค (เช่น ใช้ TraftsRepository)
-        // ถ้าพนักงานมีคนอื่นชี้ managerId มาที่ตัวเอง แสดงว่ามีลูกน้อง
         boolean hasSubordinates = traftsRepository.existsByManagerIdAndIscurrentTrue(employeeId);
-        /* * ถ้า hierarchyRepository ของพี่ไม่มี method ด้านบน ให้เขียน Native Query หรือ JPQL เช็คใน Trafts แทนได้ครับ:
-         * เช่น: boolean hasSubordinates = traftsRepository.existsByManagerIdAndIscurrentTrue(employeeId);
-         */
         if (hasSubordinates) {
             throw new RuntimeException("Cannot unassign an employee who has subordinates. Please reassign their subordinates first.");
         }
 
-        // 2. ปิด Traft ปัจจุบัน (เปลี่ยน iscurrent = false)
         Optional<Trafts> currentTraftOpt = traftsRepository.findByEmployeeIdAndIscurrentTrue(employeeId);
         if (currentTraftOpt.isPresent()) {
             Trafts currentTraft = currentTraftOpt.get();
@@ -106,7 +98,6 @@ public class EmployeeMoveServiceImpl implements EmployeeMoveService {
             traftsRepository.save(currentTraft);
         }
 
-        // 3. ลบกิ่งก้านของคนนี้ออกจากตาราง Closure Table
         hierarchyRepository.deleteOldHierarchy(employeeId);
     }
 }

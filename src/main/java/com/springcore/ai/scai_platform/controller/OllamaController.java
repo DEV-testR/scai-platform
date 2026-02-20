@@ -51,7 +51,6 @@ private final OllamaService ollamaService;
         return ollamaService.chatStream(request.getModel(), request.getPrompt());
     }
 
-    // ... (ส่วนของ pullModel ยังคงเดิม) ...
     @PostMapping("/pull-model")
     public ResponseEntity<String> pullModel(@RequestParam(value = "name") String modelName) {
         log.info("Request to pull Ollama model: {}", modelName);

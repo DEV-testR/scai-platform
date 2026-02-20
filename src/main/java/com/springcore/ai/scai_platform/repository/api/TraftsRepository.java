@@ -29,26 +29,15 @@ public interface TraftsRepository extends JpaRepository<Trafts, Long> {
     WHERE rn = 1
     """, nativeQuery = true)
     List<Trafts> findLatestTraftsByEmployeeIds(@Param("employeeIds") Set<Long> employeeIds);
-    /**
-     * ดึงข้อมูล Traft ปัจจุบันของพนักงานทุกคนเพื่อไปวาด Org Chart
-     * @EntityGraph จะสั่งให้ Hibernate ทำ LEFT JOIN กับตารางที่ระบุทันที
-     * ทำให้ไม่ต้องวนลูป Query ทีละตัว (แก้ปัญหา N+1)
-     */
+
     @EntityGraph(attributePaths = {"employee", "manager", "department", "position", "jobRoles"})
     List<Trafts> findAllByIscurrentTrue();
 
-    /**
-     * สำหรับหาพนักงานระดับสูงสุด (CEO/Root) ที่ไม่มีหัวหน้า
-     */
     @EntityGraph(attributePaths = {"employee", "position", "department", "jobRoles"})
     List<Trafts> findAllByManagerIsNullAndIscurrentTrue();
 
-    /**
-     * สำหรับหาลูกน้องสายตรงของหัวหน้าคนนั้นๆ (ใช้สำหรับ Lazy Loading)
-     */
     @EntityGraph(attributePaths = {"employee", "position", "department", "jobRoles"})
     List<Trafts> findAllByManagerIdAndIscurrentTrue(Long managerId);
 
-    // ค้นหาว่ามีลูกน้องที่ยัง Active อยู่ใต้ Manager คนนี้หรือไม่
     boolean existsByManagerIdAndIscurrentTrue(Long managerId);
 }

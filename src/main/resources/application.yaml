@@ -36,12 +36,11 @@ spring:
     upload:
       path: uploads
 
-
 # 5. JWT Configuration
 jwt:
   secret: VGhpcyBpcyBhIHZlcnkgc2VjdXJlIHNlY3JldCBrZXk=  # Base64 encoded key
-  access-expiration-in-ms: 1800000   # 1 Minute
-  refresh-expiration-in-ms: 3600000  # 1 Hour
+  access-expiration-in-ms: 3600000   # 1 Minute
+  refresh-expiration-in-ms: 86400000  # 24 Hour
 
 logging:
   level:

@@ -67,7 +67,8 @@ public class Trafts extends GenericPersistentObject {
     )
     private Set<JobRole> jobRoles;
 
-    private LocalDateTime effectivedate; // วันที่เริ่มมีผล
+    private LocalDateTime effectivedate;
+
     private LocalDateTime enddate;
 
     @Column(name = "iscurrent")
