@@ -112,6 +112,6 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public boolean validateToken(String token) {
-        return !jwtTokenProvider.validateToken(token);
+        return jwtTokenProvider.validateToken(token);
     }
 }

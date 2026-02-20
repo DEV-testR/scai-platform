@@ -31,12 +31,6 @@ public class JwtTokenProvider {
 
     private Key signingKey;
 
-    // private final CustomUserDetailsService userDetailsService;
-
-    /*public JwtTokenProvider(CustomUserDetailsService userDetailsService) {
-        this.userDetailsService = userDetailsService;
-    }*/
-
     @PostConstruct
     public void init() {
         byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
@@ -70,7 +64,7 @@ public class JwtTokenProvider {
     public boolean validateToken(String token) {
         try {
             parseClaims(token);
-            return true;
+            return false;
         } catch (ExpiredJwtException ex) {
             System.out.println("JWT expired: " + ex.getMessage());
         } catch (MalformedJwtException ex) {
@@ -80,7 +74,7 @@ public class JwtTokenProvider {
         } catch (Exception ex) {
             System.out.println("JWT validation error: " + ex.getMessage());
         }
-        return false;
+        return true;
     }
 
     private Claims parseClaims(String token) {
