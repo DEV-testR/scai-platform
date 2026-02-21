@@ -1,6 +1,8 @@
 package com.springcore.ai.scai_platform.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.springcore.ai.scai_platform.dto.DocumentFormDTO;
+import com.springcore.ai.scai_platform.security.UserContext;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,17 +20,26 @@ public class FlowDoc {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @JsonProperty("isActiveStep")
+    public boolean getIsActiveStep() {
+        Long emId = UserContext.getEmId();
+        if (emId == null) {
+            return false;
+        }
+
+        return steps.stream()
+                .filter(step -> step.getStepno() == activeStep)
+                .anyMatch(step -> step.getEmman() != null && step.getEmman().compareTo(emId) == 0);
+    }
+
     @Column(name = "ACTIVESTEP")
-    private BigDecimal activeStep;
+    private int activeStep;
 
     @Column(name = "createddate")
     private LocalDateTime createdDate;
 
     @Column(name = "docid")
     private Long docId;
-
-    @Transient
-    private DocumentFormDTO documentForm;
 
     @Column(name = "docno", unique = true)
     private String docNo;
@@ -83,4 +94,6 @@ public class FlowDoc {
 
     @OneToMany(mappedBy = "flowDoc", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<FlowDocStep> steps;
+
+
 }

@@ -1,13 +1,9 @@
 package com.springcore.ai.scai_platform.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.springcore.ai.scai_platform.domain.deserialiize.LookupItemToLongDeserializer;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.springcore.ai.scai_platform.domain.constant.DocumentStatus;
 import com.springcore.ai.scai_platform.entity.DocumentFile;
-import com.springcore.ai.scai_platform.entity.Employee;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,7 +24,12 @@ public class DocumentFormDTO {
 
     private String documentType;
 
-    private int documentStatus;
+    @JsonProperty("documentStatusVal")
+    public int getDocumentStatusVal() {
+        return documentStatus.getValue();
+    }
+
+    private DocumentStatus documentStatus;
 
     private LookupResponse emId;
 
@@ -59,5 +60,8 @@ public class DocumentFormDTO {
     }
 
     private List<DocumentFile> attachment;
+
+    private FlowDocDTO flowDoc;
+
 }
 

@@ -12,11 +12,13 @@ public interface DocumentMapper {
     // แปลง Entity -> DTO
     @Mapping(target = "emId", source = "emId")
     @Mapping(target = "reasonId", source = "reasonId")
+    @Mapping(target = "documentStatus", expression = "java(com.springcore.ai.scai_platform.domain.constant.DocumentStatus.fromValue(entity.getDocumentStatus()))")
     DocumentFormDTO toDto(Document entity);
 
     // แปลง DTO -> Entity
     @Mapping(target = "emId", source = "emId")
     @Mapping(target = "reasonId", source = "reasonId")
+    @Mapping(target = "documentStatus", expression = "java(dto.getDocumentStatus().getValue())")
     Document toEntity(DocumentFormDTO dto);
 
     // --- Custom Mapping Methods ---

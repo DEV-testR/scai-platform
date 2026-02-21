@@ -48,7 +48,7 @@ public class FlowDocStep {
     private BigDecimal mailstat;
 
     @Column(nullable = false)
-    private BigDecimal stepno;
+    private int stepno;
 
     @Column(name = "isActive")
     private Integer isActive;

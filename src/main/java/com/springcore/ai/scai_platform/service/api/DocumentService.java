@@ -3,19 +3,22 @@ package com.springcore.ai.scai_platform.service.api;
 import com.springcore.ai.scai_platform.dto.DocumentFormDTO;
 import com.springcore.ai.scai_platform.dto.DocumentSearchReq;
 import com.springcore.ai.scai_platform.dto.DocumentSearchResp;
+import com.springcore.ai.scai_platform.dto.FlowDocDTO;
 import com.springcore.ai.scai_platform.entity.Document;
 import com.springcore.ai.scai_platform.entity.FlowDoc;
 
 import java.util.List;
 
 public interface DocumentService {
-    Document save(Document form);
+    DocumentFormDTO save(DocumentFormDTO form);
 
-    FlowDoc generateFlow(DocumentFormDTO form);
+    DocumentFormDTO generateFlow(DocumentFormDTO doc);
 
-    FlowDoc submitFlow(FlowDoc flowDoc);
+    DocumentFormDTO submitFlow(DocumentFormDTO doc);
 
     List<DocumentSearchResp> search(DocumentSearchReq form);
+
+    DocumentFormDTO searchById(Long id);
 
     boolean deleteById(Long id);
 

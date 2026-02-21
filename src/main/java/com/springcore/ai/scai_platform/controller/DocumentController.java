@@ -4,6 +4,7 @@ import com.springcore.ai.scai_platform.dto.DocumentFormDTO;
 import com.springcore.ai.scai_platform.dto.DocumentSearchReq;
 import com.springcore.ai.scai_platform.dto.DocumentSearchResp;
 import com.springcore.ai.scai_platform.entity.Document;
+import com.springcore.ai.scai_platform.entity.FlowDoc;
 import com.springcore.ai.scai_platform.service.api.DocumentService;
 import jakarta.validation.ValidationException;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -37,25 +39,9 @@ public class DocumentController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/save")
-    public ResponseEntity<Object> save(@RequestBody Document from) {
+    public ResponseEntity<Object> save(@RequestBody DocumentFormDTO doc) {
         try {
-            return ResponseEntity.ok(documentService.save(from));
-        } catch (ValidationException ex) {
-            log.error("ValidationException ::", ex);
-            return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
-        } catch (Exception ex) {
-
-            log.error("Exception", ex);
-            return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping("/generate-flow")
-    @ResponseBody
-    public ResponseEntity<Object> generateFlow(@RequestBody DocumentFormDTO from) {
-        try {
-            return ResponseEntity.ok(documentService.generateFlow(from));
+            return ResponseEntity.ok(documentService.save(doc));
         } catch (ValidationException ex) {
             log.error("ValidationException ::", ex);
             return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
@@ -87,4 +73,41 @@ public class DocumentController {
                     .body("{\"error\": \"" + e.getMessage() + "\"}");
         }
     }
+
+    @GetMapping("/search/{id}")
+    public ResponseEntity<DocumentFormDTO> searchById(@PathVariable Long id) {
+        return ResponseEntity.ok(documentService.searchById(id));
+    }
+
+    @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping("/generate-flow")
+    @ResponseBody
+    public ResponseEntity<Object> generateFlow(@RequestBody DocumentFormDTO doc) {
+        try {
+            return ResponseEntity.ok(documentService.generateFlow(doc));
+        } catch (ValidationException ex) {
+            log.error("ValidationException ::", ex);
+            return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
+        } catch (Exception ex) {
+
+            log.error("Exception", ex);
+            return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping("/submit-flow")
+    @ResponseBody
+    public ResponseEntity<Object> submitFlow(@RequestBody DocumentFormDTO doc) {
+        try {
+            return ResponseEntity.ok(documentService.submitFlow(doc));
+        } catch (ValidationException ex) {
+            log.error("ValidationException ::", ex);
+            return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
+        } catch (Exception ex) {
+            log.error("Exception", ex);
+            return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 }
