@@ -4,7 +4,6 @@ import com.springcore.ai.scai_platform.config.RabbitConfig;
 import com.springcore.ai.scai_platform.dto.NotificationDTO;
 import com.springcore.ai.scai_platform.entity.Notification;
 import com.springcore.ai.scai_platform.repository.api.NotificationRepository;
-import com.springcore.ai.scai_platform.security.UserContext;
 import com.springcore.ai.scai_platform.service.api.NotificationService;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -13,7 +12,6 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
