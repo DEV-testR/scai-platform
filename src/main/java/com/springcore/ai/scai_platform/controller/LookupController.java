@@ -1,6 +1,6 @@
 package com.springcore.ai.scai_platform.controller;
 
-import com.springcore.ai.scai_platform.dto.LookupResponse;
+import com.springcore.ai.scai_platform.dto.LookupItem;
 import com.springcore.ai.scai_platform.service.api.LookupService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +20,7 @@ public class LookupController {
 
     @GetMapping("fetchData/{clazzLookup}")
     @ResponseBody
-    public ResponseEntity<List<LookupResponse>> fetchData(@PathVariable String clazzLookup) {
+    public ResponseEntity<List<LookupItem>> fetchData(@PathVariable String clazzLookup) {
         return ResponseEntity.ok(lookupService.getDynamicLookup(clazzLookup));
     }
 

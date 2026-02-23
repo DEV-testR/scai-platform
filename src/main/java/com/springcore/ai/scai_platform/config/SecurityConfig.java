@@ -1,4 +1,4 @@
-package com.springcore.ai.scai_platform.security.config;
+package com.springcore.ai.scai_platform.config;
 
 import com.springcore.ai.scai_platform.security.jwt.JwtAuthenticationFilter;
 import com.springcore.ai.scai_platform.security.jwt.JwtTokenProvider;

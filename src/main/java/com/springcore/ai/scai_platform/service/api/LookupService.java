@@ -1,14 +1,13 @@
 package com.springcore.ai.scai_platform.service.api;
 
-import com.springcore.ai.scai_platform.dto.LookupResponse;
-import com.springcore.ai.scai_platform.dto.RegisterRequest;
+import com.springcore.ai.scai_platform.dto.LookupItem;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 public interface LookupService {
-    List<LookupResponse> getDynamicLookup(String clazzLookup);
+    List<LookupItem> getDynamicLookup(String clazzLookup);
 
     Object getValueByReflection(Object object, String fldName);
 }

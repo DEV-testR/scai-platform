@@ -1,5 +1,7 @@
 package com.springcore.ai.scai_platform.domain.constant;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 @Getter
@@ -10,14 +12,13 @@ public enum DocumentStatus {
     NOT_APPROVED(11),
     CANCEL(12);
 
+    @JsonValue
     private final int value;
 
-    // Constructor รับแค่ value ตามที่คุณต้องการ
     DocumentStatus(int value) {
         this.value = value;
     }
 
-    // Method ดึง Label โดยใช้ switch จากตัวมันเอง (this)
     public String getLabel() {
         return switch (this) {
             case DRAFT -> "Drafts";
@@ -28,7 +29,6 @@ public enum DocumentStatus {
         };
     }
 
-    // Method ดึง Severity โดยใช้ switch จากตัวมันเอง (this)
     public String getSeverity() {
         return switch (this) {
             case DRAFT -> "secondary";
@@ -39,13 +39,4 @@ public enum DocumentStatus {
         };
     }
 
-    // Static Method สำหรับแปลงค่า int จาก DB ให้เป็น Object Enum
-    public static DocumentStatus fromValue(int value) {
-        for (DocumentStatus status : DocumentStatus.values()) {
-            if (status.value == value) {
-                return status;
-            }
-        }
-        return DRAFT; // default
-    }
 }

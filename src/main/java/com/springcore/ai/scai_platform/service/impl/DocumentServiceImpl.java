@@ -1,24 +1,22 @@
 package com.springcore.ai.scai_platform.service.impl;
 
 import com.springcore.ai.scai_platform.domain.constant.DocumentStatus;
-import com.springcore.ai.scai_platform.dto.DocumentFormDTO;
 import com.springcore.ai.scai_platform.dto.DocumentSearchReq;
-import com.springcore.ai.scai_platform.dto.DocumentSearchResp;
-import com.springcore.ai.scai_platform.dto.FlowDocDTO;
+import com.springcore.ai.scai_platform.dto.NotificationDTO;
 import com.springcore.ai.scai_platform.dto.SupervisorInfo;
 import com.springcore.ai.scai_platform.entity.Document;
 import com.springcore.ai.scai_platform.entity.Employee;
 import com.springcore.ai.scai_platform.entity.FlowDoc;
 import com.springcore.ai.scai_platform.entity.FlowDocStep;
-import com.springcore.ai.scai_platform.mapper.DocumentMapper;
-import com.springcore.ai.scai_platform.mapper.FlowDocMapper;
 import com.springcore.ai.scai_platform.repository.api.DocumentRepository;
 import com.springcore.ai.scai_platform.repository.api.DocumentRepositoryCustom;
 import com.springcore.ai.scai_platform.repository.api.EmployeeHierarchyRepository;
 import com.springcore.ai.scai_platform.repository.api.EmployeeRepository;
 import com.springcore.ai.scai_platform.repository.api.FlowDocRepository;
+import com.springcore.ai.scai_platform.repository.api.UserRepository;
 import com.springcore.ai.scai_platform.security.UserContext;
 import com.springcore.ai.scai_platform.service.api.DocumentService;
+import com.springcore.ai.scai_platform.service.api.NotificationService;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +25,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -41,43 +40,86 @@ public class DocumentServiceImpl implements DocumentService {
     private final EmployeeRepository employeeRepository;
     private final FlowDocRepository flowDocRepository;
     private final EmployeeHierarchyRepository hierarchyRepository;
-    private final DocumentMapper documentMapper;
-    private final FlowDocMapper flowDocMapper;
+    private final NotificationService notificationService;
+    private final UserRepository userRepository;
     private static final String userName = UserContext.getUserName();
 
     @Autowired
     public DocumentServiceImpl(DocumentRepository documentRepository
             , DocumentRepositoryCustom documentRepositoryCustom
-            , EmployeeRepository employeeRepository, FlowDocRepository flowDocRepository, EmployeeHierarchyRepository hierarchyRepository, DocumentMapper documentMapper, FlowDocMapper flowDocMapper
+            , EmployeeRepository employeeRepository
+            , FlowDocRepository flowDocRepository
+            , EmployeeHierarchyRepository hierarchyRepository
+            , NotificationService notificationService
+            , UserRepository userRepository
     ) {
         this.documentRepository = documentRepository;
         this.documentRepositoryCustom = documentRepositoryCustom;
         this.employeeRepository = employeeRepository;
         this.flowDocRepository = flowDocRepository;
         this.hierarchyRepository = hierarchyRepository;
-        this.documentMapper = documentMapper;
-        this.flowDocMapper = flowDocMapper;
+        this.notificationService = notificationService;
+        this.userRepository = userRepository;
+    }
+
+
+    @Override
+    public List<Document> search(DocumentSearchReq criteria) {
+        return documentRepositoryCustom.searchByCriteria(criteria);
     }
 
     @Override
-    public DocumentFormDTO save(DocumentFormDTO doc) {
-        log.debug("save {}", doc);
-        Document entity = documentMapper.toEntity(doc);
-
-        String documentNo = generateDocumentNo(doc.getDocumentType());
-        entity.setDocumentNo(documentNo);
-        entity.setCreateBy(userName);
-        entity.getAttachment().forEach(attachment -> attachment.setCreateBy(userName));
-        entity = documentRepository.save(entity);
-
-        log.debug("saved document id={}", entity.getId());
-        return documentMapper.toDto(entity);
+    public Document searchById(Long id) {
+        Document doc = documentRepository.findById(id).orElseThrow(() -> new RuntimeException("Document Not Found"));
+        Long docId = doc.getId();
+        flowDocRepository.findByDocId(docId).ifPresent(flowDoc -> {
+            List<FlowDocStep> steps = flowDoc.getSteps();
+            Set<Long> emIds = steps.stream().map(FlowDocStep::getEmman).filter(Objects::nonNull).collect(Collectors.toSet());
+            Map<Long, Employee> employeeMap = employeeRepository.findAllById(emIds).stream()
+                    .collect(Collectors.toMap(Employee::getId, e -> e));
+            steps.forEach(step -> step.setEmmanInfo(employeeMap.get(step.getEmman())));
+            doc.setFlowDoc(flowDoc);
+        });
+        return doc;
     }
 
     @Override
     @Transactional
-    public DocumentFormDTO generateFlow(DocumentFormDTO doc) {
+    public Document save(Document doc) {
+        log.debug("save {}", doc);
+
+        String documentNo = generateDocumentNo(doc.getDocumentType());
+        doc.setDocumentNo(documentNo);
+        doc.setCreateBy(userName);
+        doc.getAttachment().forEach(attachment -> attachment.setCreateBy(userName));
+        doc = documentRepository.save(doc);
+
+        log.debug("saved document id={}", doc.getId());
+        return doc;
+    }
+
+    @Transactional
+    public boolean deleteById(Long id) {
+        if (!documentRepository.existsById(id)) {
+            return false;
+        }
+
+        documentRepository.deleteById(id);
+        if (flowDocRepository.existsByDocId(id)) {
+            flowDocRepository.deleteByDocId(id);
+        }
+        return true;
+    }
+
+    @Override
+    @Transactional
+    public Document generateFlow(Document doc) {
+        Employee employeeLogin = UserContext.getEmployee();
+        assert employeeLogin != null;
+
+
         int maxStep = 3; // Todo Get Max Step From Config
+        doc.setDocumentStatus(DocumentStatus.DRAFT);
 
         FlowDoc flow = new FlowDoc();
         flow.setDocNo(doc.getDocumentNo());
@@ -88,52 +130,45 @@ public class DocumentServiceImpl implements DocumentService {
         flow.setLastStep(BigDecimal.valueOf(maxStep));
         flow.setInactive(BigDecimal.ZERO);
 
-        Document form = documentMapper.toEntity(doc);
-        List<SupervisorInfo> supervisors = hierarchyRepository.findSupervisors(form.getEmId());
-        supervisors.forEach(sup -> log.info("Level {}: {} - {}", sup.getLevel(), sup.getEmCode(), sup.getEmName()));
-
-        Map<Integer, SupervisorInfo> supervisorMap = supervisors.stream()
-                .collect(Collectors.toMap(SupervisorInfo::getLevel, sup -> sup));
+        Long emId = doc.getEmId();
+        List<SupervisorInfo> supervisors = hierarchyRepository.findSupervisors(emId);
+        Map<Integer, SupervisorInfo> supervisorMap = supervisors.stream().collect(Collectors.toMap(SupervisorInfo::getLevel, sup -> sup));
 
         List<FlowDocStep> steps = new ArrayList<>();
-        if (supervisorMap.isEmpty()) {
-            FlowDocStep step = new FlowDocStep();
-            step.setFlowDoc(flow);
-            step.setStepno(0);
-            step.setActionType("Request");
-            step.setEmman(form.getEmId());
-            step.setEmmanInfo(Employee.builder()
-                    .id(form.getEmId())
-                    .build());
-            step.setIsActive(1);
-            step.setIsend(BigDecimal.ONE);
-            step.setMailstat(BigDecimal.ZERO);
-            step.setReqCancel(0);
-            steps.add(step);
-            flow.setSteps(steps);
-
-            doc.setFlowDoc(flowDocMapper.toDto(flow));
-            return doc;
-        }
-
-        FlowDocStep step = new FlowDocStep();
+        FlowDocStep step;
 
         // Requester
-        Employee employeeLogin = UserContext.getEmployee();
-        Long emId = (employeeLogin != null) ? employeeLogin.getId() : null;
-        step.setFlowDoc(flow);
-        step.setStepno(0);
-        step.setEmmanInfo(employeeLogin);
-        step.setEmman(emId);
-        step.setIsActive(1);
-        step.setIsend(BigDecimal.ZERO);
-        step.setMailstat(BigDecimal.ZERO);
-        step.setReqCancel(0);
-        step.setActionType("REQUEST");
-        step.setActionDate(LocalDateTime.now());
-        steps.add(step);
+        {
+            // Case User LogIn Is Requester Step 0 Have 1
+            // Case Requester Not User LogIn Step 0 Have 2
+            step = new FlowDocStep();
+            step.setFlowDoc(flow);
+            step.setStepno(0);
+            step.setEmmanInfo(employeeLogin);
+            step.setEmman(employeeLogin.getId());
+            step.setIsActive(1);
+            step.setIsend(BigDecimal.ZERO);
+            step.setMailstat(BigDecimal.ZERO);
+            step.setReqCancel(0);
+            step.setActionType("REQUEST");
+            step.setActionDate(LocalDateTime.now());
+            steps.add(step);
 
-        // 2. ลูปสร้าง 3 Step
+            if (employeeLogin.getId().compareTo(emId) != 0) {
+                FlowDocStep owner = new FlowDocStep();
+                owner.setFlowDoc(flow);
+                owner.setStepno(0);
+                employeeRepository.findById(emId).ifPresent(owner::setEmmanInfo);
+                owner.setEmman(emId);
+                owner.setIsActive(0);
+                owner.setIsend(BigDecimal.ZERO);
+                owner.setMailstat(BigDecimal.ZERO);
+                owner.setReqCancel(0);
+                owner.setActionType("OWNER");
+                steps.add(owner);
+            }
+        }
+
         for (int i = 1; i <= 3; i++) {
             step = new FlowDocStep();
             step.setFlowDoc(flow);
@@ -157,7 +192,7 @@ public class DocumentServiceImpl implements DocumentService {
                         .name(findSup.getEmName())
                         .build());
             } else {
-                approverId = form.getEmId();
+                approverId = emId;
             }
 
             step.setActionType("WAITING");
@@ -170,31 +205,32 @@ public class DocumentServiceImpl implements DocumentService {
         }
 
         flow.setSteps(steps);
-        doc.setFlowDoc(flowDocMapper.toDto(flow));
+        doc.setFlowDoc(flow);
         doc.setDocumentStatus(DocumentStatus.DRAFT);
         return doc;
     }
 
     @Override
     @Transactional
-    public DocumentFormDTO submitFlow(DocumentFormDTO doc) {
-        FlowDoc flowDoc = flowDocMapper.toEntity(doc.getFlowDoc());
-
+    public Document submitFlow(Document doc) {
         doc.setDocumentStatus(DocumentStatus.WAITING);
-        Document document = documentMapper.toEntity(save(doc));
+        FlowDoc flowDoc = doc.getFlowDoc();
 
-        flowDoc.setDocId(document.getId());
-        flowDoc.setDocNo(document.getDocumentNo());
+        Document documentSaved = save(doc);
+        Long docId = documentSaved.getId();
+        String documentNo = documentSaved.getDocumentNo();
+
+        flowDoc.setDocId(docId);
+        flowDoc.setDocNo(documentNo);
         flowDoc.setCreatedDate(LocalDateTime.now());
         if (flowDoc.getSteps() != null) {
-            // หา Step ปัจจุบัน (ปกติคือ Step 0 ในตอนเริ่ม Submit)
             FlowDocStep currentStep = flowDoc.getSteps().stream()
                     .filter(s -> s.getStepno() == 0)
                     .findFirst()
                     .orElse(null);
 
             if (currentStep != null) {
-                currentStep.setIsActive(0); // 1. ปิด Step ปัจจุบัน
+                currentStep.setIsActive(0);
 
                 // 2. หา Next Step (Step ที่ 1)
                 int nextStepNo = currentStep.getStepno() + 1;
@@ -202,79 +238,31 @@ public class DocumentServiceImpl implements DocumentService {
                         .filter(s -> s.getStepno() == nextStepNo)
                         .findFirst()
                         .ifPresent(nextStep -> {
-                            nextStep.setIsActive(1); // 2. เปิด Step ถัดไป
-                            flowDoc.setActiveStep(nextStep.getStepno()); // 3. อัปเดตสถานะใน FlowDoc
+                            nextStep.setIsActive(1);
+                            flowDoc.setActiveStep(nextStep.getStepno());
+
+                            Long userId = userRepository.findUserIdByEmployeeId(nextStep.getEmman());
+                            if (userId != null) {
+                                // Send Notification via RabbitMQ into the SSE stream
+                                notificationService.sendToUser(userId, NotificationDTO.builder()
+                                        .title("New Task Awaiting Approval")
+                                        .message("Document No. " + documentNo + " has been sent to you.")
+                                        .type("INFO") // Defines UI color (e.g., INFO=Blue, SUCCESS=Green)
+                                        .parentId(docId)
+                                        .url("/documents/" + docId)
+                                        .timestamp(new Date()) // Automatically converted to Long Timestamp per your JacksonConfig
+                                        .build());
+                            } else {
+                                log.warn("NotificationService.sendToUser Failed. Could not find user with id {}", nextStep.getEmman());
+                            }
                         });
             }
 
             flowDoc.getSteps().forEach(step -> step.setFlowDoc(flowDoc));
         }
 
-        DocumentFormDTO docuemntDto = documentMapper.toDto(document);
-        FlowDocDTO flowDocDTO = flowDocMapper.toDto(flowDocRepository.save(flowDoc));
-        docuemntDto.setFlowDoc(flowDocDTO);
-        return docuemntDto;
-    }
-
-    @Override
-    public List<DocumentSearchResp> search(DocumentSearchReq criteria) {
-        List<Document> documents = documentRepositoryCustom.searchByCriteria(criteria);
-        Set<Long> emIds = documents.stream()
-                .map(Document::getEmId)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-
-        Map<Long, Employee> employeeMap = employeeRepository.findAllById(emIds).stream()
-                .collect(Collectors.toMap(Employee::getId, e -> e));
-
-        return documents.parallelStream().map(r -> {
-                    Employee employee = (r.getEmId() != null) ? employeeMap.get(r.getEmId()) : null;
-                    return DocumentSearchResp
-                            .builder()
-                            .id(r.getId())
-                            .emId(employee)
-                            .documentNo(r.getDocumentNo())
-                            .documentType(r.getDocumentType())
-                            .documentStatus(r.getDocumentStatus())
-                            .documentDate(r.getDateWork())
-                            .build();
-                })
-                .toList();
-    }
-
-    @Override
-    public DocumentFormDTO searchById(Long id) {
-        Document document = documentRepository.findById(id).orElseThrow(() -> new RuntimeException("Document Not Found"));
-        Long docId = document.getId();
-        DocumentFormDTO dto = documentMapper.toDto(document);
-        flowDocRepository.findByDocId(docId).ifPresent(flowDoc -> {
-            List<FlowDocStep> steps = flowDoc.getSteps();
-
-            Set<Long> emIds = steps.stream().map(FlowDocStep::getEmman).filter(Objects::nonNull).collect(Collectors.toSet());
-            Map<Long, Employee> employeeMap = employeeRepository.findAllById(emIds).stream()
-                    .collect(Collectors.toMap(Employee::getId, e -> e));
-
-            steps.forEach(step -> {
-                Employee em = employeeMap.get(step.getEmman());
-                step.setEmmanInfo(employeeMap.get(step.getEmman()));
-            });
-
-            dto.setFlowDoc(flowDocMapper.toDto(flowDoc));
-        });
-        return dto;
-    }
-
-    @Transactional
-    public boolean deleteById(Long id) {
-        if (!documentRepository.existsById(id)) {
-            return false;
-        }
-
-        documentRepository.deleteById(id);
-        if (flowDocRepository.existsByDocId(id)) {
-            flowDocRepository.deleteByDocId(id);
-        }
-        return true;
+        doc.setFlowDoc(flowDocRepository.save(flowDoc));
+        return doc;
     }
 
     private String generateDocumentNo(String documentType) {

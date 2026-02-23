@@ -1,6 +1,6 @@
 package com.springcore.ai.scai_platform.service.impl;
 
-import com.springcore.ai.scai_platform.dto.LookupResponse;
+import com.springcore.ai.scai_platform.dto.LookupItem;
 import com.springcore.ai.scai_platform.repository.api.DynamicRepository;
 import com.springcore.ai.scai_platform.service.api.LookupService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,10 +19,10 @@ public class LookupServiceImpl implements LookupService {
     }
 
     @Override
-    public List<LookupResponse> getDynamicLookup(String clazzName) {
+    public List<LookupItem> getDynamicLookup(String clazzName) {
         return dynamicRepository.fetchData(clazzName)
                 .stream()
-                .map(r -> LookupResponse.builder()
+                .map(r -> LookupItem.builder()
                         .id((Long) getValueByReflection(r, "id"))
                         .code((String) getValueByReflection(r, "code"))
                         .name((String) getValueByReflection(r, "name"))

@@ -1,10 +1,7 @@
 package com.springcore.ai.scai_platform.controller;
 
-import com.springcore.ai.scai_platform.dto.DocumentFormDTO;
 import com.springcore.ai.scai_platform.dto.DocumentSearchReq;
-import com.springcore.ai.scai_platform.dto.DocumentSearchResp;
 import com.springcore.ai.scai_platform.entity.Document;
-import com.springcore.ai.scai_platform.entity.FlowDoc;
 import com.springcore.ai.scai_platform.service.api.DocumentService;
 import jakarta.validation.ValidationException;
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +36,7 @@ public class DocumentController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/save")
-    public ResponseEntity<Object> save(@RequestBody DocumentFormDTO doc) {
+    public ResponseEntity<Object> save(@RequestBody Document doc) {
         try {
             return ResponseEntity.ok(documentService.save(doc));
         } catch (ValidationException ex) {
@@ -53,7 +50,7 @@ public class DocumentController {
     }
 
     @PostMapping("/search")
-    public ResponseEntity<List<DocumentSearchResp>> search(@RequestBody DocumentSearchReq criteria) {
+    public ResponseEntity<List<Document>> search(@RequestBody DocumentSearchReq criteria) {
         return ResponseEntity.ok(documentService.search(criteria));
     }
 
@@ -75,14 +72,14 @@ public class DocumentController {
     }
 
     @GetMapping("/search/{id}")
-    public ResponseEntity<DocumentFormDTO> searchById(@PathVariable Long id) {
+    public ResponseEntity<Document> searchById(@PathVariable Long id) {
         return ResponseEntity.ok(documentService.searchById(id));
     }
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/generate-flow")
     @ResponseBody
-    public ResponseEntity<Object> generateFlow(@RequestBody DocumentFormDTO doc) {
+    public ResponseEntity<Object> generateFlow(@RequestBody Document doc) {
         try {
             return ResponseEntity.ok(documentService.generateFlow(doc));
         } catch (ValidationException ex) {
@@ -98,7 +95,7 @@ public class DocumentController {
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/submit-flow")
     @ResponseBody
-    public ResponseEntity<Object> submitFlow(@RequestBody DocumentFormDTO doc) {
+    public ResponseEntity<Object> submitFlow(@RequestBody Document doc) {
         try {
             return ResponseEntity.ok(documentService.submitFlow(doc));
         } catch (ValidationException ex) {

@@ -1,7 +1,6 @@
 package com.springcore.ai.scai_platform.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.springcore.ai.scai_platform.dto.DocumentFormDTO;
 import com.springcore.ai.scai_platform.security.UserContext;
 import jakarta.persistence.*;
 import lombok.Getter;

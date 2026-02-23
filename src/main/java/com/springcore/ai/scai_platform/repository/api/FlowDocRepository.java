@@ -10,7 +10,6 @@ import java.util.Optional;
 @Repository
 public interface FlowDocRepository extends JpaRepository<FlowDoc, Long> {
 
-    // ค้นหา FlowDoc โดยใช้ docId
     Optional<FlowDoc> findByDocId(Long docId);
 
     @Transactional

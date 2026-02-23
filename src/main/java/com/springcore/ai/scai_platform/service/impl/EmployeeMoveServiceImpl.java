@@ -74,7 +74,6 @@ public class EmployeeMoveServiceImpl implements EmployeeMoveService {
         }
 
         Trafts build = newTraftBuilder.build();
-        build.setCreateBy(UserContext.getUserName());
         traftsRepository.save(build);
 
         // 5. Update Closure Table (Hierarchy Bulk Update)

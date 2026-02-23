@@ -1,5 +1,7 @@
 package com.springcore.ai.scai_platform.domain.extend;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
@@ -34,6 +36,7 @@ public abstract class GenericPersistentObject implements Serializable, GenericVe
     @CreatedDate
     @Temporal(TemporalType.TIMESTAMP)
     @Column(nullable = false, updatable = false)
+    @JsonFormat(shape = JsonFormat.Shape.NUMBER_INT)
     private Date createDate = new Date();
 
     @Audited
@@ -44,6 +47,7 @@ public abstract class GenericPersistentObject implements Serializable, GenericVe
     @Audited
     @LastModifiedDate
     @Temporal(TemporalType.TIMESTAMP)
+    @JsonFormat(shape = JsonFormat.Shape.NUMBER_INT)
     private Date updateDate;
 
     @Audited

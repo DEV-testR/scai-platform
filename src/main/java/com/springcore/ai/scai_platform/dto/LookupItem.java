@@ -9,12 +9,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class LookupResponse {
+public class LookupItem {
     private Long id;
     private String code;
     private String name;
-
-    public String getId() {
-        return id.toString();
-    }
 }

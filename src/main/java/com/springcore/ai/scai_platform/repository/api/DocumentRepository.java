@@ -1,24 +1,27 @@
 package com.springcore.ai.scai_platform.repository.api;
 
 import com.springcore.ai.scai_platform.entity.Document;
-import com.springcore.ai.scai_platform.entity.Employee;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface DocumentRepository extends JpaRepository<Document, Long>, JpaSpecificationExecutor<Document> {
 
+    /*@EntityGraph(attributePaths = {"employee", "reason"})
     Optional<Document> findByDocumentNo(String documentNo);
 
+    @EntityGraph(attributePaths = {"employee", "reason"})
     List<Document> findByDocumentType(String documentType);
 
-    List<Document> findByEmId(Employee emId);
+    @EntityGraph(attributePaths = {"employee", "reason"})
+    List<Document> findByEmployee(Employee employee);*/
 
+    @EntityGraph(attributePaths = {"employee", "reason"})
     @Query("""
     select d from Document d
     where d.documentType = :documentType
