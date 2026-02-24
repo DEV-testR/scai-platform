@@ -31,3 +31,4 @@ modelfile
 /target
 .idea/compiler.xml
 src/main/resources/application.yaml
+/.idea
