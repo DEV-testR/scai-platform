@@ -1,7 +1,6 @@
 package com.springcore.ai.scai_platform.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -32,7 +31,6 @@ public class FlowDocStep {
     private Long emman;
 
     @Transient
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Employee emmanInfo;
 
     @Column(nullable = false)

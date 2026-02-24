@@ -17,9 +17,4 @@ public interface NotificationService {
     List<Notification> getHistory(Long userId);
 
     void markAsRead(Long id);
-
-    Integer countUnread(Long userId);
-
-    void markAllAsRead(Long userId);
-
 }

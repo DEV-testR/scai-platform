@@ -1,7 +1,6 @@
 package com.springcore.ai.scai_platform.entity;
 
 import com.springcore.ai.scai_platform.domain.extend.GenericPersistentObject;
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -31,6 +30,5 @@ public class Notification extends GenericPersistentObject {
     private String url;
 
     @Builder.Default
-    @Column(name = "isRead")
-    private boolean read = false;
+    private boolean isRead = false; // เอาไว้เช็คว่าอ่านหรือยัง
 }

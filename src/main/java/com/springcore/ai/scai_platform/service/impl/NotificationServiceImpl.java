@@ -4,11 +4,7 @@ import com.springcore.ai.scai_platform.config.RabbitConfig;
 import com.springcore.ai.scai_platform.dto.NotificationDTO;
 import com.springcore.ai.scai_platform.entity.Notification;
 import com.springcore.ai.scai_platform.repository.api.NotificationRepository;
-import com.springcore.ai.scai_platform.security.UserContext;
 import com.springcore.ai.scai_platform.service.api.NotificationService;
-import jakarta.transaction.Transactional;
-import jakarta.validation.ValidationException;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.messaging.handler.annotation.Header;
@@ -20,12 +16,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Slf4j
 @Service
 public class NotificationServiceImpl implements NotificationService {
 
     private final RabbitTemplate rabbitTemplate;
     private final NotificationRepository notificationRepository;
+    // ยังต้องมี Map Sinks สำหรับพ่นออก SSE ให้ Browser ที่เกาะอยู่กับเครื่องนี้
     private final Map<Long, Sinks.Many<NotificationDTO>> userSinks = new ConcurrentHashMap<>();
 
     public NotificationServiceImpl(RabbitTemplate rabbitTemplate, NotificationRepository notificationRepository) {
@@ -35,24 +31,26 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public Flux<NotificationDTO> getNotificationStream(Long userId) {
-        if (UserContext.getUserId() == null || userId.compareTo(UserContext.getUserId()) != 0) {
-            throw new ValidationException("Invalid user id");
-        }
-
-        log.info(">>> User {} is connecting to Notification Stream (SSE)", userId);
         return userSinks.computeIfAbsent(userId, k ->
-                        Sinks.many().multicast().onBackpressureBuffer()
-                ).asFlux()
-                .doOnCancel(() -> {
-                    log.info("<<< User {} disconnected from stream", userId);
-                    userSinks.remove(userId);
-                })
-                .doOnTerminate(() -> userSinks.remove(userId));
+                Sinks.many().multicast().onBackpressureBuffer()
+        ).asFlux();
     }
 
     @Override
     public void sendToUser(Long userId, NotificationDTO payload) {
-        log.info("Sending notification to RabbitMQ for user: {}, title: {}", userId, payload.getTitle());
+
+        Notification entity = Notification.builder()
+                .userId(userId)
+                .title(payload.getTitle())
+                .message(payload.getMessage())
+                .type(payload.getType())
+                .parentId(payload.getParentId())
+                .url(payload.getUrl())
+                .isRead(false)
+                .build();
+        notificationRepository.save(entity);
+
+        // ส่งเข้า RabbitMQ: "มีงานส่งถึง User ID นี้นะ"
         rabbitTemplate.convertAndSend(
                 RabbitConfig.NOTI_EXCHANGE,
                 "noti.user." + userId,
@@ -61,23 +59,23 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @RabbitListener(queues = RabbitConfig.NOTI_QUEUE)
-    public void receiveFromRabbit(NotificationDTO payload,
-                                  @Header("amqp_receivedRoutingKey") String routingKey) {
-
-        log.info("Message received from RabbitMQ! RoutingKey: {}", routingKey);
-
+    public void receiveFromRabbit(NotificationDTO payload, @Header("amqp_receivedRoutingKey") String routingKey) {
         try {
-            String userIdStr = routingKey.substring(routingKey.lastIndexOf(".") + 1);
-            Long userId = Long.parseLong(userIdStr);
-            Sinks.Many<NotificationDTO> sink = userSinks.get(userId);
-            if (sink != null) {
-                log.info("Pushing notification to User {}'s screen", userId);
-                sink.emitNext(payload, Sinks.EmitFailureHandler.FAIL_FAST);
-            } else {
-                log.warn("User {} has no active SSE connection. Message skipped.", userId);
+            // ตรวจสอบว่า routingKey มีรูปแบบที่ถูกต้องก่อน split
+            if (routingKey != null && routingKey.startsWith("noti.user.")) {
+                String[] parts = routingKey.split("\\.");
+                if (parts.length >= 3) {
+                    Long userId = Long.parseLong(parts[2]);
+                    Sinks.Many<NotificationDTO> sink = userSinks.get(userId);
+                    if (sink != null) {
+                        // ใช้ emitNext พร้อม Handler เพื่อจัดการกรณีท่อเต็มหรือไม่มีคนฟัง
+                        sink.emitNext(payload, Sinks.EmitFailureHandler.FAIL_FAST);
+                    }
+                }
             }
         } catch (Exception e) {
-            log.error("Failed to process message from RabbitMQ: {}", e.getMessage());
+            // แนะนำให้ log error ไว้ด้วยครับ เผื่อ debug ตอนรันบน M3 Pro
+            System.err.println("Error processing notification from RabbitMQ: " + e.getMessage());
         }
     }
 
@@ -97,18 +95,5 @@ public class NotificationServiceImpl implements NotificationService {
             n.setRead(true);
             notificationRepository.save(n);
         });
-    }
-
-    @Override
-    public Integer countUnread(Long userId) {
-        log.info("Counting unread notifications for user: {}", userId);
-        return notificationRepository.countByUserIdAndReadFalse(userId);
-    }
-
-    @Override
-    @Transactional // สำคัญมากสำหรับการทำ Bulk Update
-    public void markAllAsRead(Long userId) {
-        log.info("Marking all notifications as read for user: {}", userId);
-        notificationRepository.markAllAsReadByUserId(userId);
     }
 }
