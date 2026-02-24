@@ -32,3 +32,5 @@ modelfile
 .idea/compiler.xml
 src/main/resources/application.yaml
 /.idea
+target/classes/application.yaml
+scai-platform.iml
