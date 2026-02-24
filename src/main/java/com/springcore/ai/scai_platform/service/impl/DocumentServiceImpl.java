@@ -8,11 +8,13 @@ import com.springcore.ai.scai_platform.entity.Document;
 import com.springcore.ai.scai_platform.entity.Employee;
 import com.springcore.ai.scai_platform.entity.FlowDoc;
 import com.springcore.ai.scai_platform.entity.FlowDocStep;
+import com.springcore.ai.scai_platform.entity.Notification;
 import com.springcore.ai.scai_platform.repository.api.DocumentRepository;
 import com.springcore.ai.scai_platform.repository.api.DocumentRepositoryCustom;
 import com.springcore.ai.scai_platform.repository.api.EmployeeHierarchyRepository;
 import com.springcore.ai.scai_platform.repository.api.EmployeeRepository;
 import com.springcore.ai.scai_platform.repository.api.FlowDocRepository;
+import com.springcore.ai.scai_platform.repository.api.NotificationRepository;
 import com.springcore.ai.scai_platform.repository.api.UserRepository;
 import com.springcore.ai.scai_platform.security.UserContext;
 import com.springcore.ai.scai_platform.service.api.DocumentService;
@@ -41,6 +43,7 @@ public class DocumentServiceImpl implements DocumentService {
     private final FlowDocRepository flowDocRepository;
     private final EmployeeHierarchyRepository hierarchyRepository;
     private final NotificationService notificationService;
+    private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
     private static final String userName = UserContext.getUserName();
 
@@ -51,6 +54,7 @@ public class DocumentServiceImpl implements DocumentService {
             , FlowDocRepository flowDocRepository
             , EmployeeHierarchyRepository hierarchyRepository
             , NotificationService notificationService
+            , NotificationRepository notificationRepository
             , UserRepository userRepository
     ) {
         this.documentRepository = documentRepository;
@@ -59,6 +63,7 @@ public class DocumentServiceImpl implements DocumentService {
         this.flowDocRepository = flowDocRepository;
         this.hierarchyRepository = hierarchyRepository;
         this.notificationService = notificationService;
+        this.notificationRepository = notificationRepository;
         this.userRepository = userRepository;
     }
 
@@ -108,6 +113,11 @@ public class DocumentServiceImpl implements DocumentService {
         if (flowDocRepository.existsByDocId(id)) {
             flowDocRepository.deleteByDocId(id);
         }
+
+        if (notificationRepository.existsByParentId(id)) {
+            notificationRepository.deleteByParentId(id);
+        }
+
         return true;
     }
 
@@ -244,14 +254,26 @@ public class DocumentServiceImpl implements DocumentService {
                             Long userId = userRepository.findUserIdByEmployeeId(nextStep.getEmman());
                             if (userId != null) {
                                 // Send Notification via RabbitMQ into the SSE stream
-                                notificationService.sendToUser(userId, NotificationDTO.builder()
+                                NotificationDTO payload = NotificationDTO.builder()
                                         .title("New Task Awaiting Approval")
                                         .message("Document No. " + documentNo + " has been sent to you.")
                                         .type("INFO") // Defines UI color (e.g., INFO=Blue, SUCCESS=Green)
                                         .parentId(docId)
-                                        .url("/documents/" + docId)
+                                        .url("document")
                                         .timestamp(new Date()) // Automatically converted to Long Timestamp per your JacksonConfig
-                                        .build());
+                                        .build();
+
+                                notificationService.sendToUser(userId, payload);
+                                Notification entity = Notification.builder()
+                                        .userId(userId)
+                                        .title(payload.getTitle())
+                                        .message(payload.getMessage())
+                                        .type(payload.getType())
+                                        .parentId(payload.getParentId())
+                                        .url(payload.getUrl())
+                                        .read(false)
+                                        .build();
+                                notificationRepository.save(entity);
                             } else {
                                 log.warn("NotificationService.sendToUser Failed. Could not find user with id {}", nextStep.getEmman());
                             }

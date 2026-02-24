@@ -32,7 +32,7 @@ public class NotificationController {
         return notificationService.getHistory(userId);
     }
 
-    @PatchMapping("/{id}/read")
+    @PatchMapping("/read/{id}")
     public void markAsRead(@PathVariable Long id) {
         notificationService.markAsRead(id);
     }
