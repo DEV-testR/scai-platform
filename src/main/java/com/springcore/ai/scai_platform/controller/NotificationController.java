@@ -42,7 +42,6 @@ public class NotificationController {
         return ResponseEntity.ok(notificationService.countUnread(userId));
     }
 
-    // เพิ่ม: สำหรับกด "อ่านทั้งหมด"
     @PatchMapping("/read-all/{userId}")
     public ResponseEntity<Void> markAllAsRead(@PathVariable Long userId) {
         notificationService.markAllAsRead(userId);
