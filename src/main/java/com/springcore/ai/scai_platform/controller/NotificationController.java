@@ -5,6 +5,7 @@ import com.springcore.ai.scai_platform.entity.Notification;
 import com.springcore.ai.scai_platform.service.api.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,15 +27,25 @@ public class NotificationController {
         return notificationService.getNotificationStream(userId);
     }
 
-    // ดึงประวัติย้อนหลัง
     @GetMapping("/history/{userId}")
     public List<Notification> getHistory(@PathVariable Long userId) {
         return notificationService.getHistory(userId);
     }
 
-    // สำหรับกดอ่านแจ้งเตือน
-    @PatchMapping("/{id}/read")
+    @PatchMapping("/read/{id}")
     public void markAsRead(@PathVariable Long id) {
         notificationService.markAsRead(id);
+    }
+
+    @GetMapping("/unread-count/{userId}")
+    public ResponseEntity<Integer> getUnreadCount(@PathVariable Long userId) {
+        return ResponseEntity.ok(notificationService.countUnread(userId));
+    }
+
+    // เพิ่ม: สำหรับกด "อ่านทั้งหมด"
+    @PatchMapping("/read-all/{userId}")
+    public ResponseEntity<Void> markAllAsRead(@PathVariable Long userId) {
+        notificationService.markAllAsRead(userId);
+        return ResponseEntity.noContent().build();
     }
 }
