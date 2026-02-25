@@ -81,10 +81,10 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
 
-    @Override
+    /*@Override
     public void sendToUsers(List<Long> userIds, NotificationDTO payload) {
         userIds.forEach(id -> sendToUser(id, payload));
-    }
+    }*/
 
     @Override
     public List<Notification> getHistory(Long userId) {
