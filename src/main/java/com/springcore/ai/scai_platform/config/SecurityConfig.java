@@ -1,8 +1,9 @@
 package com.springcore.ai.scai_platform.config;
 
+import com.springcore.ai.scai_platform.properties.CorsProperties;
 import com.springcore.ai.scai_platform.security.jwt.JwtAuthenticationFilter;
 import com.springcore.ai.scai_platform.security.jwt.JwtTokenProvider;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -14,6 +15,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -30,31 +32,54 @@ public class SecurityConfig {
 
     private final UserDetailsService userDetailsService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final CorsProperties corsProperties;
 
-    public SecurityConfig(UserDetailsService userDetailsService, JwtTokenProvider jwtTokenProvider) {
+    public SecurityConfig(UserDetailsService userDetailsService
+            , JwtTokenProvider jwtTokenProvider
+            , CorsProperties corsProperties) {
         this.userDetailsService = userDetailsService;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.corsProperties = corsProperties;
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthFilter) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/v0/**").permitAll()
-                        .requestMatchers("/error").permitAll()
+                        .requestMatchers("/api/auth/**", "/api/v0/**", "/error").permitAll()
                         .requestMatchers("/api/v1/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exception -> exception
+                        // Handle 401 Unauthorized (Unauthenticated user)
                         .authenticationEntryPoint((request, response, authException) -> {
-                            response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             response.setContentType("application/json");
-                            response.getWriter().write("{\"error\": \"Unauthorized\", \"message\": \"Full authentication is required to access this resource\"}");
+
+                            String jsonResponse = """
+                                    {
+                                        "error": "Unauthorized",
+                                        "message": "Full authentication is required to access this resource"
+                                    }
+                                    """;
+                            response.getWriter().write(jsonResponse);
+                        })
+                        // Handle 403 Forbidden (Authenticated user but insufficient permissions)
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.setContentType("application/json");
+
+                            String jsonResponse = """
+                                    {
+                                        "error": "Forbidden",
+                                        "message": "You do not have permission to access this resource"
+                                    }
+                                    """;
+                            response.getWriter().write(jsonResponse);
                         })
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .cors(Customizer.withDefaults());
 
         return http.build();
@@ -63,15 +88,17 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:4200", "http://localhost:57652"));
+
+        // Apply the injected list of origins
+        config.setAllowedOrigins(corsProperties.getAllowedOrigins());
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
     }
-
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
@@ -80,13 +107,8 @@ public class SecurityConfig {
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
-        // This constructor is NOT deprecated in Spring Security < 6.0
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
-
-        // These methods are NOT deprecated in Spring Security < 6.0
-        // provider.setUserDetailsService(userDetailsService);
         provider.setPasswordEncoder(passwordEncoder());
-
         return provider;
     }
 
@@ -95,7 +117,6 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // วิธีขอ AuthenticationManager จาก AuthenticationConfiguration
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
