@@ -21,6 +21,7 @@ import com.springcore.ai.scai_platform.service.api.DocumentService;
 import com.springcore.ai.scai_platform.service.api.NotificationService;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -45,7 +46,6 @@ public class DocumentServiceImpl implements DocumentService {
     private final NotificationService notificationService;
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
-    private static final String userName = UserContext.getUserName();
 
     @Autowired
     public DocumentServiceImpl(DocumentRepository documentRepository
@@ -91,12 +91,11 @@ public class DocumentServiceImpl implements DocumentService {
     @Override
     @Transactional
     public Document save(Document doc) {
+        Long docId = doc.getId();
+        log.debug("action {}", (docId != null) ? "UPDATE" : "INSERT");
         log.debug("save {}", doc);
 
-        String documentNo = generateDocumentNo(doc.getDocumentType());
-        doc.setDocumentNo(documentNo);
-        doc.setCreateBy(userName);
-        doc.getAttachment().forEach(attachment -> attachment.setCreateBy(userName));
+        generateDocumentNo(doc);
         doc = documentRepository.save(doc);
 
         log.debug("saved document id={}", doc.getId());
@@ -287,7 +286,12 @@ public class DocumentServiceImpl implements DocumentService {
         return doc;
     }
 
-    private String generateDocumentNo(String documentType) {
+    private void generateDocumentNo(Document doc) {
+        if (StringUtils.isNotBlank(doc.getDocumentNo())) {
+            return;
+        }
+
+        String documentType = doc.getDocumentType();
         String format = java.time.YearMonth.now().toString().replace("-", "");
         List<Document> latestList = documentRepository.findTopByTypeAndMonthOrderByIdDesc(documentType, format);
 
@@ -298,7 +302,8 @@ public class DocumentServiceImpl implements DocumentService {
             running = Integer.parseInt(lastRunning) + 1;
         }
 
-        return String.format("%s-%s-%04d", documentType, format, running);
+        String documentNo = String.format("%s-%s-%04d", documentType, format, running);
+        doc.setDocumentNo(documentNo);
     }
 
 }
