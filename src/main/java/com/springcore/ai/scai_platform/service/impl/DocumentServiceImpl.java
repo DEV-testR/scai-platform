@@ -20,6 +20,7 @@ import com.springcore.ai.scai_platform.security.UserContext;
 import com.springcore.ai.scai_platform.service.api.DocumentService;
 import com.springcore.ai.scai_platform.service.api.NotificationService;
 import jakarta.transaction.Transactional;
+import jakarta.validation.ValidationException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -224,6 +225,9 @@ public class DocumentServiceImpl implements DocumentService {
     public Document submitFlow(Document doc) {
         doc.setDocumentStatus(DocumentStatus.WAITING);
         FlowDoc flowDoc = doc.getFlowDoc();
+        if (flowDoc.getId() != null) {
+            throw new ValidationException("Flow document already exists");
+        }
 
         Document documentSaved = save(doc);
         Long docId = documentSaved.getId();
