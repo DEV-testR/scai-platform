@@ -30,16 +30,18 @@ import java.util.List;
 @EnableMethodSecurity
 public class SecurityConfig {
 
+    private final UserLoggingFilter userLoggingFilter;
     private final UserDetailsService userDetailsService;
     private final JwtTokenProvider jwtTokenProvider;
     private final CorsProperties corsProperties;
 
     public SecurityConfig(UserDetailsService userDetailsService
             , JwtTokenProvider jwtTokenProvider
-            , CorsProperties corsProperties) {
+            , CorsProperties corsProperties, UserLoggingFilter userLoggingFilter) {
         this.userDetailsService = userDetailsService;
         this.jwtTokenProvider = jwtTokenProvider;
         this.corsProperties = corsProperties;
+        this.userLoggingFilter = userLoggingFilter;
     }
 
     @Bean
@@ -80,6 +82,7 @@ public class SecurityConfig {
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(userLoggingFilter, JwtAuthenticationFilter.class)
                 .cors(Customizer.withDefaults());
 
         return http.build();
