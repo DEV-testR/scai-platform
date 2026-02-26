@@ -32,3 +32,4 @@ modelfile
 src/main/resources/application.yaml
 target/classes/application.yaml
 scai-platform.iml
+/uploads

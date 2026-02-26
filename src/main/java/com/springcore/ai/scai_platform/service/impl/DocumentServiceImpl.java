@@ -262,7 +262,7 @@ public class DocumentServiceImpl implements DocumentService {
                                         .message("Document No. " + documentNo + " has been sent to you.")
                                         .type("INFO") // Defines UI color (e.g., INFO=Blue, SUCCESS=Green)
                                         .parentId(docId)
-                                        .url("document")
+                                        .url("document/flow")
                                         .timestamp(new Date()) // Automatically converted to Long Timestamp per your JacksonConfig
                                         .build();
 

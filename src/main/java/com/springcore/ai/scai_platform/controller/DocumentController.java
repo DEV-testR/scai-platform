@@ -36,17 +36,8 @@ public class DocumentController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/save")
-    public ResponseEntity<Object> save(@RequestBody Document doc) {
-        try {
-            return ResponseEntity.ok(documentService.save(doc));
-        } catch (ValidationException ex) {
-            log.error("ValidationException ::", ex);
-            return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
-        } catch (Exception ex) {
-
-            log.error("Exception", ex);
-            return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    public ResponseEntity<Document> save(@RequestBody Document doc) {
+        return ResponseEntity.ok(documentService.save(doc));
     }
 
     @PostMapping("/search")
@@ -79,32 +70,16 @@ public class DocumentController {
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/generate-flow")
     @ResponseBody
-    public ResponseEntity<Object> generateFlow(@RequestBody Document doc) {
-        try {
-            return ResponseEntity.ok(documentService.generateFlow(doc));
-        } catch (ValidationException ex) {
-            log.error("ValidationException ::", ex);
-            return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
-        } catch (Exception ex) {
+    public ResponseEntity<Document> generateFlow(@RequestBody Document doc) {
+        return ResponseEntity.ok(documentService.generateFlow(doc));
 
-            log.error("Exception", ex);
-            return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
     }
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/submit-flow")
     @ResponseBody
-    public ResponseEntity<Object> submitFlow(@RequestBody Document doc) {
-        try {
-            return ResponseEntity.ok(documentService.submitFlow(doc));
-        } catch (ValidationException ex) {
-            log.error("ValidationException ::", ex);
-            return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
-        } catch (Exception ex) {
-            log.error("Exception", ex);
-            return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    public ResponseEntity<Document> submitFlow(@RequestBody Document doc) {
+        return ResponseEntity.ok(documentService.submitFlow(doc));
     }
 
 }

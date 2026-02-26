@@ -31,6 +31,19 @@ public class FlowDoc {
                 .anyMatch(step -> step.getEmman() != null && step.getEmman().compareTo(emId) == 0);
     }
 
+    @JsonProperty("stepActive")
+    public FlowDocStep getStepActive() {
+        Long emId = UserContext.getEmId();
+        if (emId == null) {
+            return null;
+        }
+
+        return steps.stream()
+                .filter(step -> step.getStepno() == activeStep)
+                .findFirst()
+                .orElse(null);
+    }
+
     @Column(name = "ACTIVESTEP")
     private int activeStep;
 
