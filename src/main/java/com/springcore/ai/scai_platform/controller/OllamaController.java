@@ -1,7 +1,6 @@
 package com.springcore.ai.scai_platform.controller;
 
 import com.springcore.ai.scai_platform.dto.AIChatRequest;
-import com.springcore.ai.scai_platform.service.api.ModelFileService;
 import com.springcore.ai.scai_platform.service.api.OllamaService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -19,11 +18,9 @@ import reactor.core.publisher.Flux;
 @RequestMapping("/api/v0/ollama")
 public class OllamaController {
 
-    private final ModelFileService modelFileService;
 private final OllamaService ollamaService;
 
-    public OllamaController(ModelFileService fineTuneService, OllamaService ollamaService) {
-        this.modelFileService = fineTuneService;
+    public OllamaController(OllamaService ollamaService) {
         this.ollamaService = ollamaService;
     }
 
@@ -57,10 +54,4 @@ private final OllamaService ollamaService;
         return ResponseEntity.accepted().body("Model pull for " + modelName + " initiated. Check Ollama logs.");
     }
 
-    @PostMapping("/fine-tune")
-    public ResponseEntity<String> fineTuneModel() {
-        String modelName = modelFileService.buildModelFile();
-        log.info("Request to FineTune Ollama model: {}", modelName);
-        return ResponseEntity.accepted().body(modelName);
-    }
 }
