@@ -36,3 +36,4 @@ scai-platform.iml
 deploy.sh
 src/main/resources/application-dev.yaml
 src/main/resources/application-prod.yaml
+deploy-back.sh
